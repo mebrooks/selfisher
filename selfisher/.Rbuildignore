@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+figure$
+cache$
+.*\.bbl$
+.*\.blg$
+.*\.aux$
+.*\.log$
+.*\.out$
+.*misc/.*$

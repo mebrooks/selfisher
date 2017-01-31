@@ -1,10 +1,10 @@
 R=R
 # -> you can do    R=R-devel  make ....
 
-PACKAGE=glmmTMB
-# get VERSION from glmmTMB/DESCRIPTION  
+PACKAGE=selfisher
+# get VERSION from selfisher/DESCRIPTION  
 ## ("::" = expand only  once, but doesn't work in make <= 3.81)
-VERSION := $(shell sed -n '/^Version: /s///p' glmmTMB/DESCRIPTION)
+VERSION := $(shell sed -n '/^Version: /s///p' selfisher/DESCRIPTION)
 
 TARBALL := $(PACKAGE)_$(VERSION).tar.gz
 ZIPFILE := =$(PACKAGE)_$(VERSION).zip
@@ -19,22 +19,22 @@ all:
 	make pdf
 
 enum-update:: $(PACKAGE)/R/enum.R
-$(PACKAGE)/R/enum.R: $(PACKAGE)/src/glmmTMB.cpp
+$(PACKAGE)/R/enum.R: $(PACKAGE)/src/selfisher.cpp
 	echo '## Auto generated - do not edit by hand' > $@
 	echo ".valid_link <- c(" >> $@
-	grep _link.*= $(PACKAGE)/src/glmmTMB.cpp | sed s/_link//g >> $@
+	grep _link.*= $(PACKAGE)/src/selfisher.cpp | sed s/_link//g >> $@
 	echo ")" >> $@
 
 	echo ".valid_family <- c(" >> $@
-	grep _family.*= $(PACKAGE)/src/glmmTMB.cpp | sed s/_family//g >> $@
+	grep _family.*= $(PACKAGE)/src/selfisher.cpp | sed s/_family//g >> $@
 	echo ")" >> $@
 
 	echo ".valid_covstruct <- c(" >> $@
-	grep _covstruct.*= $(PACKAGE)/src/glmmTMB.cpp | sed s/_covstruct//g >> $@
+	grep _covstruct.*= $(PACKAGE)/src/selfisher.cpp | sed s/_covstruct//g >> $@
 	echo ")" >> $@
 
 	echo ".valid_zipredictcode <- c(" >> $@
-	grep _zipredictcode.*= $(PACKAGE)/src/glmmTMB.cpp | sed s/_zipredictcode//g >> $@
+	grep _ppredictcode.*= $(PACKAGE)/src/selfisher.cpp | sed s/_ppredictcode//g >> $@
 	echo ")" >> $@
 
 doc-update: $(PACKAGE)/R/*.R
@@ -43,8 +43,8 @@ doc-update: $(PACKAGE)/R/*.R
 
 ## FIXME: build *all* .Rnw files in the directory
 vignette-update: $(PACKAGE)/vignettes/*.Rnw
-	cd $(PACKAGE)/vignettes; echo "library(knitr);knit2pdf('glmmTMB.Rnw')" | $(R) --slave
-	 mv $(PACKAGE)/vignettes/glmmTMB.pdf $(PACKAGE)/inst/doc
+	cd $(PACKAGE)/vignettes; echo "library(knitr);knit2pdf('selfisher.Rnw')" | $(R) --slave
+	 mv $(PACKAGE)/vignettes/selfisher.pdf $(PACKAGE)/inst/doc
 	@touch vignette-update
 
 namespace-update :: $(PACKAGE)/NAMESPACE
@@ -63,11 +63,11 @@ install: $(TARBALL)
 
 ## To enable quick compile, run from R:
 ##    library(TMB); precompile(flags="-O0 -g")
-quick-install: enum-update $(PACKAGE)/src/glmmTMB.so
+quick-install: enum-update $(PACKAGE)/src/selfisher.so
 	$(R) CMD INSTALL $(PACKAGE)
 
-$(PACKAGE)/src/glmmTMB.so: $(PACKAGE)/src/glmmTMB.cpp
-	cd $(PACKAGE)/src; echo "library(TMB); compile('glmmTMB.cpp','-O0 -g')" | $(R) --slave
+$(PACKAGE)/src/selfisher.so: $(PACKAGE)/src/selfisher.cpp
+	cd $(PACKAGE)/src; echo "library(TMB); compile('selfisher.cpp','-O0 -g')" | $(R) --slave
 
 unexport TEXINPUTS
 pdf: $(PACKAGE).pdf
@@ -87,18 +87,18 @@ check-cran: $(TARBALL)
 ## *NOT* using 'R --vanilla' : then cannot find testthat, TMB, etc they are installed into R's "system" library
 
 test:
-	echo "devtools::test('glmmTMB')" | $(R) --slave
+	echo "devtools::test('selfisher')" | $(R) --slave
 
 quick-check: quick-install ex-test
 
 ex-test:
-	echo "library(glmmTMB); example(glmmTMB)" | $(R) --slave
+	echo "library(selfisher); example(selfisher)" | $(R) --slave
 
 
 unlock:
-	\rm -rf `Rscript --vanilla -e 'writeLines(.Library)'`/00LOCK-glmmTMB
+	\rm -rf `Rscript --vanilla -e 'writeLines(.Library)'`/00LOCK-selfisher
 #               ------------------------------------------ = R's system library
-#	rm -rf ${R_LIBS}/00LOCK-glmmTMB
+#	rm -rf ${R_LIBS}/00LOCK-selfisher
 ##               ^^^^^^^ This only works if R_LIBS contains a single directory and the same that 'R CMD INSTALL' uses..
 
 clean:

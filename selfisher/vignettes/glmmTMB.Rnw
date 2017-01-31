@@ -1,0 +1,351 @@
+\documentclass{article}
+%% vignette index specifications need to be *after* \documentclass{}
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{basic examples of glmmTMB usage}
+%\VignettePackage{glmmTMB}
+%\VignetteDepends{ggplot2}
+%\VignetteDepends{grid}
+%\VignetteDepends{bbmle}
+%\VignetteDepends{mlmRev}
+%\usepackage{lineno}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[american]{babel}
+\newcommand{\R}{{\sf R}}
+\newcommand{\fixme}[1]{\textbf{\color{red} fixme: #1}}
+\newcommand{\notimpl}[1]{\emph{\color{magenta} #1}}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{alltt}
+\newcommand{\code}[1]{{\tt #1}}
+\usepackage{fancyvrb}
+\usepackage{natbib}
+\VerbatimFootnotes
+\bibliographystyle{chicago}
+
+\title{Getting started with the \code{glmmTMB} package}
+\author{Ben Bolker}
+\date{\today}
+\begin{document}
+\maketitle
+
+%\linenumbers
+
+<<setopts,echo=FALSE>>=
+require("knitr")
+opts_chunk$set(fig.width=5,fig.height=5,
+               out.width="0.8\\textwidth",echo=TRUE)
+Rver <- paste(R.version$major,R.version$minor,sep=".")
+used.pkgs <- c("glmmTMB","bbmle")  ## packages to report below
+@ 
+
+
+\section{Introduction/quick start}
+
+\code{glmmTMB} is an R package built on 
+the \href{https://github.com/kaskr/adcomp}{Template Model Builder} automatic differentiation engine, for fitting generalized
+linear mixed models and extensions.
+
+(Not-yet-implemented features are denoted \notimpl{like this})
+
+\begin{itemize}
+  \item response distributions: Poisson, binomial, negative binomial (NB1 and NB2 parameterizations), Gamma, Beta, Gaussian; truncated Poisson and negative binomial; \notimpl{Student $t$; Tweedie}
+  \item link functions: log, logit, probit, complementary log-log, inverse, identity
+  \item zero-inflation with fixed and random-effects components; hurdle models via truncated Poisson/NB
+  \item single or multiple (nested or crossed) random effects
+  \item offsets
+  \item fixed-effects models for dispersion
+  \item diagonal, compound-symmetric, or unstructured random effects variance-covariance matrices; first-order autoregressive (AR1) variance structures
+\end{itemize}
+
+In order to use \code{glmmTMB} effectively you should already
+be reasonably familiar with generalized linear mixed models
+(GLMMs), which in turn requires familiarity with (i) generalized
+linear models (e.g. the special cases of logistic, binomial,
+and Poisson regression) and (ii) `modern' mixed models (those
+working via maximization of the marginal likelihood rather
+than by manipulating sums of squares).   \cite{bolker_generalized_2009} and \cite{bolker_glmm_2014} are reasonable starting
+points in this area (especially geared to biologists and less-technical readers), as are \cite{zuur_mixed_2009}, \cite{millar_maximum_2011}, and \cite{zuur_beginners_2013}.
+
+In order to fit a model in \code{glmmTMB} you need to:
+\begin{itemize}
+\item specify a model for the conditional effects, in the standard
+  R (Wilkinson-Rogers) formula notation (see \code{?formula}
+  or Section 11.1 of the \href{http://cran.r-project.org/doc/manuals/R-intro.pdf}{Introduction to R}. 
+  Formulae can also include \emph{offsets}.
+\item specify a model for the random effects, in the notation
+  that is common to the \code{nlme} and \code{lme4} packages.
+  Random effects are specified as \code{x|g}, where \code{x}
+  is an effect and \code{g} is a grouping factor (which must
+  be a factor variable, or a nesting of/interaction among factor variables).
+  For example, the formula would be \code{1|block} for a random-intercept model
+  or \code{time|block} for a model with random variation in slopes
+  through time across groups specified by \code{block}. A model
+  of nested random effects (block within site) would be
+  \code{1|site/block}; a model of crossed random effects
+  (block and year) would be \code{(1|block)+(1|year)}.
+\item choose the error distribution by specifying the family (\code{family} argument). For standard GLM families implemented in R, you can use the function name (\code{binomial}, \code{gaussian}, \code{poisson}, \code{Gamma}). Otherwise, you should specify the family argument as a list containing (at least) the (character) elements \code{family} and \code{link}, e.g. \code{family=list(family="nbinom2",link="log")}.
+\item optionally specify a zero-inflation model (via the \code{ziformula} argument) with fixed and/or random effects
+\item optionally specify a dispersion model with fixed effects
+\end{itemize}
+
+This document was
+generated using \Sexpr{R.version$version.string} and package versions:
+<<pkgversions,echo=FALSE>>=
+pkgver <- vapply(sort(used.pkgs),function(x) as.character(packageVersion(x)),"")
+print(pkgver,quote=FALSE)
+@ 
+
+The current citation for \code{glmmTMB} is:
+\begin{quote}
+%% fixme: would like to deal with smart quotes
+<<citation,echo=FALSE,results="asis">>=
+print(citation("glmmTMB"),style="latex")
+@ 
+\end{quote}
+
+\section{Preliminaries: packages and data}
+
+Load required packages:
+<<pkgs,message=FALSE>>=
+library("glmmTMB")
+library("bbmle")    ## for AICtab
+library("ggplot2")
+## cosmetic
+theme_set(theme_bw()+
+  theme(panel.margin=grid::unit(0,"lines")))
+@ 
+
+The data, taken from \cite{zuur_mixed_2009} and ultimately
+from \cite{roulinbersier_2007}, quantify
+the number of negotiations among owlets (owl chicks)
+in different nests \emph{prior} to the arrival
+of a provisioning parent as a function of food treatment
+(deprived or satiated), the sex of the parent, and
+arrival time.  The total number of calls from the
+nest is recorded, along with the total brood size, which
+is used as an offset to allow the use of a Poisson response.
+
+Since the same nests are measured repeatedly, the nest is used as
+a random effect.
+The model can be expressed as a zero-inflated generalized
+linear mixed model (ZIGLMM).
+
+Various small manipulations of the data set:
+(1) reorder nests by mean negotiations per chick, for plotting
+purposes; (2) add log brood size variable (for offset);
+(3) rename response variable and abbreviate one of the input variables.
+%% FIXME: I get a warning message ("NAs introduced by coercion")  here, but only in knitr,
+%%  and not on a clean start ... ?
+%% some weird package interaction ?
+<<owltransform,warning=FALSE>>=
+Owls <- transform(Owls,
+                  Nest=reorder(Nest,NegPerChick),
+                  NCalls=SiblingNegotiation,
+                  FT=FoodTreatment)
+@ 
+(If you were really using this data set you should start
+with \code{summary(Owls)} to explore the data set.)
+
+% fig.cap="Basic view of owl data from \\cite{roulinbersier_2007}."
+<<owlplot1,echo=FALSE,message=FALSE,warning=FALSE,eval=FALSE>>=
+G0 <- ggplot(Owls,aes(x=reorder(Nest,NegPerChick),
+                      y=NegPerChick))+
+  labs(x="Nest",y="Negotiations per chick")+coord_flip()+
+  facet_grid(FoodTreatment~SexParent)
+G0+stat_sum(aes(size=..n..),alpha=0.5)+
+      scale_size_continuous(name="# obs",
+                            breaks=seq(1,9,by=2))+
+    theme(axis.title.x=element_text(hjust=0.5,size=12),
+         axis.text.y=element_text(size=7))
+@ 
+
+We should explore the data before we start to
+build models, e.g. by plotting it in
+various ways, but this vignette is about \code{glmmTMB},
+not about data visualization \ldots
+
+Now fit some models:
+
+The basic \code{glmmTMB} fit --- a zero-inflated Poisson model with a single zero-inflation parameter applying to all observations (\verb+ziformula~1+).  (Excluding zero-inflation is \code{glmmTMB}'s default:
+to exclude it explicitly, use \verb+ziformula~0+.)
+<<time1,echo=FALSE,cache=TRUE>>=
+gt1 <- system.time(glmmTMB(NCalls~(FT+ArrivalTime)*SexParent+
+                                     offset(log(BroodSize))+(1|Nest),
+                                     ziformula=~1,
+                                     data=Owls,
+                                     family=poisson))
+@ 
+
+<<glmmTMBfit>>=
+fit_zipoisson <- glmmTMB(NCalls~(FT+ArrivalTime)*SexParent+
+                                     offset(log(BroodSize))+(1|Nest),
+                                     data=Owls,
+                                     ziformula=~1,
+                                     family=poisson)
+@
+
+<<zipoisssum>>=
+summary(fit_zipoisson)
+@ 
+
+We can also try a standard zero-inflated negative binomial model;
+the default is the ``NB2'' parameterization (variance = $\mu(1+\mu/k)$: \cite{hardin_generalized_2007}).
+To use families (Poisson, binomial, Gaussian) that are defined
+in \R, you should specify them as in \code{?glm} (as a string
+referring to the family function, as the family function itself,
+or as the result of a call to the family function: i.e.
+\code{family="poisson"}, \code{family=poisson},
+\code{family=poisson()}, and \code{family=poisson(link="log")}
+are all allowed and all equivalent (the log link is the default
+for the Poisson family).  Some of the additional families that
+are \emph{not} defined in base R (at this point \code{nbinom2}
+and \code{nbinom1}) can be specified using the same format.
+Otherwise, for families that are implemented in \code{glmmTMB}
+but for which \code{glmmTMB} does not provide a function,
+you should specify the \code{family} argument
+as a list containing (at least) the (character) elements \code{family}
+and \code{link}, e.g. \code{family=list(family="nbinom2",link="log")}.
+(In order to be able to retrieve Pearson (variance-scaled) residuals
+from a fit, you also need to specify a \code{variance} component;
+see \code{?family\_glmmTMB}.)
+
+<<glmmTMBnbinomfit>>=
+fit_zinbinom <- update(fit_zipoisson,family=nbinom2)
+@
+
+%% FIXME: caching may lead to
+%% ## Error in ICtab(..., mnames = mnames, type = "AIC"): memory block of size 3.1 Gb
+%% downstream, in AICtab() ...
+%% for now I'm removing caching, but we should 
+%%   (1) document this as an issue/make a MWE
+%%   (2) fix it
+%%   (3) we could also cache the AICtab chunk as well ..
+
+Alternatively, we can use an ``NB1'' fit (variance = $\phi \mu$).
+<<glmmTMBnbinom1fit>>=
+fit_zinbinom1 <- update(fit_zipoisson,family=nbinom1)
+@
+
+\notimpl{we should have a \code{getFamily} function:
+ideally it would also specify which are really implemented
+(although that's harder), and specify default links}
+
+Relax the assumption that total number of calls is strictly proportional
+to brood size (i.e. using log(brood size) as an offset):
+<<glmmTMBnbinom1vfit>>=
+fit_zinbinom1_bs <- update(fit_zinbinom1,
+                           . ~ (FT+ArrivalTime)*SexParent+
+                               BroodSize+(1|Nest))
+@ 
+
+Every change we have made so far improves the fit --- changing distributions
+improves it enormously, while changing the role of brood size makes only
+a modest (-1 AIC unit) difference:
+<<aictab>>=
+AICtab(fit_zipoisson,fit_zinbinom,fit_zinbinom1,fit_zinbinom1_bs)
+@ 
+
+\subsection{Hurdle models}
+
+In contrast to zero-inflated models, hurdle models treat zero-count
+and non-zero outcomes as two completely separate categories, rather than
+treating the zero-count outcomes as a mixture of structural and
+sampling zeros.
+
+\code{glmmTMB} includes truncated
+Poisson and negative binomial familes and hence can fit hurdle models.
+The two parts of the model have to be fitted separately, however.
+First we fit a truncated distribution to the non-zero outcomes:
+
+<<glmmTMBnbinomhfit,cache=TRUE>>=
+fit_hnbinom1A <- update(fit_zinbinom1_bs,
+                        ziformula=~0,
+                        data=subset(Owls,NCalls>0),
+                        family=list(family="truncated_nbinom1",link="log"))
+@ 
+
+Then we fit a binomial distribution with a response based on whether the
+number of calls is greater than zero:
+<<glmmTMBnbinomhfit2,cache=TRUE>>=
+fit_hnbinom1B <- update(fit_zinbinom1_bs,
+                        ziformula=~0,
+                        (NCalls>0) ~ .,
+                        family=binomial)
+@
+
+Unfortunately we can't directly use the combined model (conditional model for positive counts together with the model for zero/non-zero) in summaries like \code{AICtab}, but both the log-likelihoods and the numbers of parameters are additive, so we can just add the AICs.
+Comparing them with the best model so far:
+<<hurdle_AIC>>=
+AIC(fit_hnbinom1A)+AIC(fit_hnbinom1B)
+AIC(fit_zinbinom1_bs)
+@
+\fixme{why do we get a warning here?}
+
+\section{Sample timings}
+
+To get a rough idea of \code{glmmTMB}'s speed relative to
+\code{lme4} (the most commonly used mixed-model package for R),
+we try a few standard problems, enlarging the data sets by
+cloning the original data set (making multiple copies and 
+sticking them together).
+
+<<contraception_sum,echo=FALSE>>=
+data("Contraception",package="mlmRev")
+nc <- nrow(Contraception)
+nl <- length(levels(Contraception$district))
+load("contraceptionTimings.rda")
+meandiff <- mean(with(tmatContraception,
+                      time[pkg=="glmer"]/time[pkg=="glmmTMB"]))
+@
+
+Figure~\ref{fig:contraception} shows the results of 
+replicating the \code{Contraception} data set
+(\Sexpr{nc} observations, \Sexpr{nl} levels in the
+random effects grouping level) from 1 to 40 times.
+\code{glmmADMB} is sufficiently slow ($\approx 1$ minute for
+a single copy of the data) that we didn't try replicating very much.
+On average, \code{glmmTMB} is about \Sexpr{round(meandiff,1)} times
+faster than \code{glmer} for this problem.
+
+<<contraception,echo=FALSE,warning=FALSE,fig.cap="Timing for fitting the replicated Contraception data set.">>=
+ggplot(tmatContraception,aes(n,time,colour=pkg))+geom_point()+
+  scale_y_log10(breaks=c(1,2,5,10,20,50,100))+
+  scale_x_log10(breaks=c(1,2,4,10,20,40))+
+  labs(x="Replication (x 1934 obs.)",y="Elapsed time (s)")+
+  geom_smooth(method="lm")+
+  scale_colour_brewer(palette="Set1")
+@
+
+
+<<insteval,echo=FALSE,warning=FALSE,fig.cap="Timing for fitting subsets of the InstEval data set.">>=
+load("InstEvalTimings.rda")
+n_InstEval <- 73421L  ## seems silly to require lme4 just to get this number
+meandiff_inst2 <- with(tmatInstEval,
+     time[pkg=="lmer"]/time[pkg=="glmmTMB"])
+ggplot(tmatInstEval,aes(n,time,colour=pkg))+geom_point()+
+  scale_y_log10(breaks=c(1,2,5,10,20,50,100,200))+
+      scale_x_log10(breaks=c(0.1,0.2,0.5,1.0))+
+  labs(x=sprintf("Replication (x %d obs.)",n_InstEval),
+       y="Elapsed time (s)")+
+  geom_smooth(method="lm")+
+  scale_colour_brewer(palette="Set1")
+@
+
+Figure~\ref{fig:insteval} shows equivalent timings for the
+\code{InstEval} data set, although in this case since the
+original data set is large (\Sexpr{n_InstEval} observations)
+we subsample the data set rather than cloning it:
+in this case, the advantage is reversed
+and \code{lmer} is about \Sexpr{round(1/mean(meandiff_inst2,1))} times
+faster.
+
+In general, we expect \code{glmmTMB}'s advantages over \code{lme4} to
+be (1) greater flexibility (zero-inflation etc.); (2) greater speed for
+GLMMs, especially those with large number of ``top-level'' parameters
+(fixed effects plus random-effects variance-covariance parameters).
+In contrast, \code{lme4} should be faster for LMMs (for maximum
+speed, you may want to check the \href{https://github.com/dmbates/MixedModels.jl}{MixedModels.jl} package for Julia); \code{lme4} is more mature and at present has a wider variety of diagnostic checks and methods for using model results, including downstream packages.
+
+\bibliography{glmmTMB}
+\end{document}
