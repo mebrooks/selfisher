@@ -3,7 +3,7 @@
 
 ##' Create a factor with numeric interpretable factor levels.
 ##'
-##' Some \code{glmmTMB} covariance structures require extra
+##' Some \code{selfisher} covariance structures require extra
 ##' information, such as temporal or spatial
 ##' coordinates. \code{numFactor} allows to associate such extra
 ##' information as part of a factor via the factor levels. The

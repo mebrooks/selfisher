@@ -4,7 +4,7 @@
 
 ## Installation 
 
-You can install `glmmTMB` via
+You can install `selfisher` via
 ```
 devtools::install_github("mebrooks/selfisher/selfisher")
 ```

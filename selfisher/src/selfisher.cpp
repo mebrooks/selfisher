@@ -1,23 +1,7 @@
+#define TMB_LIB_INIT R_init_selfisher
 #include <TMB.hpp>
 
 namespace selfisher{
-  template<class Type>
-  Type dbetabinom(Type y, Type a, Type b, Type n, int give_log=0)
-  {
-    /*
-      Wikipedia:
-      f(k|n,\alpha,\beta) =
-      \frac{\Gamma(n+1)}{\Gamma(k+1)\Gamma(n-k+1)}
-      \frac{\Gamma(k+\alpha)\Gamma(n-k+\beta)}{\Gamma(n+\alpha+\beta)}
-      \frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}
-    */
-    Type logres =
-      lgamma(n + 1) - lgamma(y + 1)     - lgamma(n - y + 1) +
-      lgamma(y + a) + lgamma(n - y + b) - lgamma(n + a + b) +
-      lgamma(a + b) - lgamma(a)         - lgamma(b) ;
-    if(!give_log) return exp(logres);
-    else return logres;
-  }
 
   template<class Type>
   bool isNA(Type x){
@@ -99,17 +83,15 @@ extern "C" {
 }
 
 enum valid_family {
-  binomial_family = 100,
-  betabinomial_family =101
+  binomial_family = 100
 };
 
 enum valid_link {
-  log_link                 = 0,
-  logit_link               = 1,
-  probit_link              = 2,
-  inverse_link             = 3,
-  cloglog_link             = 4,
-  identity_link            = 5
+  logit_link             = 1,
+  probit_link            = 2,
+  cloglog_link           = 3,
+  loglog_link            = 4,
+  richards_link          = 5
 };
 
 enum valid_covStruct {
@@ -124,22 +106,16 @@ enum valid_covStruct {
   toep_covstruct = 8
 };
 
-enum valid_pPredictCode {
-  corrected_ppredictcode = 0,
-  uncorrected_ppredictcode = 1,
-  prob_ppredictcode = 2
+enum valid_PredictCode {
+  corrected_predictcode = 0,
+  uncorrected_predictcode = 1,
+  prob_predictcode = 2
 };
 
 template<class Type>
-Type inverse_linkfun(Type eta, int link) {
+Type inverse_linkfun(Type eta, Type etad, int link) {
   Type ans;
   switch (link) {
-  case log_link:
-    ans = exp(eta);
-    break;
-  case identity_link:
-    ans = eta;
-    break;
   case logit_link:
     ans = invlogit(eta);
     break;
@@ -149,10 +125,12 @@ Type inverse_linkfun(Type eta, int link) {
   case cloglog_link:
     ans = Type(1) - exp(-exp(eta));
     break;
-  case inverse_link:
-    ans = Type(1) / eta;
+  case loglog_link:
+    ans = exp(-exp(-eta));
     break;
-    // TODO: Implement remaining links
+  case richards_link:
+    ans = pow(exp(eta)/(1+exp(eta)), 1/exp(etad));
+    break;
   default:
     error("Link not implemented!");
   } // End switch
@@ -162,34 +140,20 @@ Type inverse_linkfun(Type eta, int link) {
 /* logit transformed inverse_linkfun without losing too much
    accuracy */
 template<class Type>
-Type logit_inverse_linkfun(Type eta, int link) {
+Type logit_inverse_linkfun(Type eta, Type etad, int link) {
   Type ans;
   switch (link) {
   case logit_link:
     ans = eta;
     break;
   case probit_link:
-    ans = glmmtmb::logit_pnorm(eta);
+    ans = selfisher::logit_pnorm(eta);
     break;
   case cloglog_link:
-    ans = glmmtmb::logit_invcloglog(eta);
+    ans = selfisher::logit_invcloglog(eta);
     break;
   default:
-    ans = logit( inverse_linkfun(eta, link) );
-  } // End switch
-  return ans;
-}
-
-/* log transformed inverse_linkfun without losing too much accuracy */
-template<class Type>
-Type log_inverse_linkfun(Type eta, int link) {
-  Type ans;
-  switch (link) {
-  case log_link:
-    ans = eta;
-    break;
-  default:
-    ans = log( inverse_linkfun(eta, link) );
+    ans = logit( inverse_linkfun(eta, etad, link) );
   } // End switch
   return ans;
 }
@@ -478,20 +442,18 @@ Type objective_function<Type>::operator() ()
   // Parameters related to design matrices
   PARAMETER_VECTOR(betar);
   PARAMETER_VECTOR(betap);
+  PARAMETER_VECTOR(betad);
   PARAMETER_VECTOR(br);
   PARAMETER_VECTOR(bp);
-  PARAMETER_VECTOR(betad);
 
   // Joint vector of covariance parameters
   PARAMETER_VECTOR(thetar);
   PARAMETER_VECTOR(thetap);
 
-  DATA_INTEGER(family);
   DATA_INTEGER(link);
 
   // Flags
   DATA_INTEGER(pPredictCode);
-  bool p_flag = (betap.size() > 0);
   DATA_INTEGER(doPredict);
   DATA_IVECTOR(whichPredict);
 
@@ -508,59 +470,25 @@ Type objective_function<Type>::operator() ()
   vector<Type> etad = Xd * betad;
 
   // Apply link
-  vector<Type> mu(etar.size());
-  for (int i = 0; i < mu.size(); i++)
-    mu(i) = inverse_linkfun(etar(i), link);
+  vector<Type> r(etar.size());
+  for (int i = 0; i < r.size(); i++)
+    r(i) = inverse_linkfun(etar(i), etad(i), link);
   vector<Type> p = invlogit(etap);
-  vector<Type> phi = exp(etad);
+ //phi as in eqn 3 of Wileman et al. 1996, not like in selfisher
+  vector<Type> logit_phi = log(p)+log(r)-log(Type(1)-p);
 
   // Observation likelihood
-  Type s1, s2, s3, log_nzprob, nzprob, stmp;
-  Type tmp_loglik;
   for (int i=0; i < yobs.size(); i++){
     if ( !selfisher::isNA(yobs(i)) ) {
-      switch (family) {
-      case binomial_family:
-        s1 = logit_inverse_linkfun(eta(i), link); // logit(p)
-        tmp_loglik = dbinom_robust(yobs(i) * weights(i), weights(i), s1, true);
-        SIMULATE{yobs(i) = rbinom(weights(i), mu(i));}
-        break;
-      case betabinomial_family:
-        s1 = mu(i)*phi(i); // s1 = mu(i) * mu(i) / phi(i);
-        s2 = (Type(1)-mu(i))*phi(i); // phi(i) / mu(i);
-        tmp_loglik = selfisher::dbetabinom(yobs(i) * weights(i), s1, s2, weights(i), true);
-        SIMULATE{yobs(i) = 0;}//TODO: fill in when rbetabinomial is added to TMB
-        break;
-      default:
-        error("Family not implemented!");
-      } // End switch
-
-      // Add zero inflation
-      if(zi_flag){
-        Type logit_pz = etazi(i) ;
-        Type log_pz   = -logspace_add( Type(0) , -logit_pz );
-        Type log_1mpz = -logspace_add( Type(0) ,  logit_pz );
-        if(yobs(i) == Type(0)){
-          // Was:
-          //   tmp_loglik = log( pz(i) + (1.0 - pz(i)) * exp(tmp_loglik) );
-          tmp_loglik = logspace_add( log_pz, log_1mpz + tmp_loglik );
-        } else {
-          // Was:
-          //   tmp_loglik += log( 1.0 - pz(i) );
-          tmp_loglik += log_1mpz ;
-        }
-        SIMULATE{yobs(i) = yobs(i)*rbinom(Type(1), Type(1)-pz(i));}
-      }
-
-      // Add up
-      jnll -= tmp_loglik;
+      jnll -= dbinom_robust(yobs(i) * weights(i), weights(i), logit_phi(i), true);
+      SIMULATE{yobs(i) = rbinom(weights(i), invlogit(logit_phi(i));}
     }
   }
 
   // Report / ADreport / Simulate Report
   vector<matrix<Type> > corrr(termsr.size());
   vector<vector<Type> > sdr(termsr.size());
-  for(int i=0; i<terms.size(); i++){
+  for(int i=0; i<termsr.size(); i++){
     // NOTE: Dummy terms reported as empty
     if(termsr(i).blockNumTheta > 0){
       corrr(i) = termsr(i).corr;
@@ -583,24 +511,22 @@ Type objective_function<Type>::operator() ()
   REPORT(sdp);
   SIMULATE{ REPORT(yobs);}
   // For predict
-  if(p_flag) {
-    switch(pPredictCode){
-    case corrected_ppredictcode:
-      mu *= (Type(1) - pz); // Account for zi in prediction
-      break;
-    case uncorrected_ppredictcode:
-      mu = mu; // Predict mean of 'family'
-      break;
-    case prob_ppredictcode:
-      mu = p; // Predict relative fishing power
-      break;
-    default:
-      error("Invalid 'pPredictCode'");
-    }
+  switch(pPredictCode){
+  case corrected_predictcode:
+    r = invlogit(logit_phi); // Account for relative fishing power
+    break;
+  case uncorrected_predictcode:
+    r = r; // Predict size selectivity
+    break;
+  case prob_predictcode:
+    r = p; // Predict relative fishing power
+    break;
+  default:
+    error("Invalid 'PredictCode'");
   }
 
   whichPredict -= 1; // R-index -> C-index
-  vector<Type> mu_predict = mu(whichPredict);
+  vector<Type> mu_predict = r(whichPredict);
   REPORT(mu_predict);
   // ADREPORT expensive for long vectors - only needed by predict()
   // method.

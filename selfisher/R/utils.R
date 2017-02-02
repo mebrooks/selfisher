@@ -104,11 +104,11 @@ expandGrpVar <- function(f) {
 ##' Modeled after lme4:::expandSlash, by Doug Bates
 ##' @param bb a list of naked grouping variables, i.e. 1 | f
 ##' @examples
-##' ff <- glmmTMB:::fbx(y~1+(x|f/g))
-##' glmmTMB:::expandAllGrpVar(ff)
-##' glmmTMB:::expandAllGrpVar(quote(1|(f/g)/h))
-##' glmmTMB:::expandAllGrpVar(quote(1|f/g/h))
-##' glmmTMB:::expandAllGrpVar(quote(1|f*g))
+##' ff <- selfisher:::fbx(y~1+(x|f/g))
+##' selfisher:::expandAllGrpVar(ff)
+##' selfisher:::expandAllGrpVar(quote(1|(f/g)/h))
+##' selfisher:::expandAllGrpVar(quote(1|f/g/h))
+##' selfisher:::expandAllGrpVar(quote(1|f*g))
 ##' @importFrom utils head
 ##' @keywords internal
 expandAllGrpVar <- function(bb) {

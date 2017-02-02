@@ -1,5 +1,5 @@
 if(require("testthat")) {
-    pkg <- "glmmTMB"
+    pkg <- "selfisher"
     require(pkg, character.only=TRUE)
     print(sessionInfo())
     test_check(pkg)

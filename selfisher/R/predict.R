@@ -1,28 +1,25 @@
 ##' prediction
-##' @param object a \code{glmmTMB} object
+##' @param object a \code{selfisher} object
 ##' @param newdata new data for prediction
 ##' @param se.fit return the standard errors of the predicted values?
-##' @param zitype for zero-inflated models,
-##' return expected value ("response": (mu*(1-p))),
-##' the mean of the conditional distribution ("conditional": mu),
-##' or the probability of a structural zero ("zprob")?
+##' @param ptype 
+##' return expected value ("response": pr/(pr+1-p)),
+##' the  predicted selection curve ("selection": r),
+##' or the relative fishing power of the test gear ("prob")?
 ##' @param debug (logical) return the \code{TMBStruc} object that will be
-##' used internally for debuggin?
+##' used internally for debugging?
 ##' @param re.form (not yet implemented) specify which random effects to condition on when predicting
 ##' @param allow.new.levels (not yet implemented) allow previously unobserved levels in random-effects grouping variables?
 ##' @param \dots unused - for method compatibility
 
 ##' @examples
-##' data(sleepstudy,package="lme4")
-##' g0 <- glmmTMB(Reaction~Days+(Days|Subject),sleepstudy)
-##' predict(g0, sleepstudy)
 ##' @importFrom TMB sdreport
 ##' @importFrom stats optimHess
 ##' @export
-predict.glmmTMB <- function(object,newdata=NULL,
+predict.selfisher <- function(object,newdata=NULL,
                             se.fit=FALSE,
                             re.form, allow.new.levels=FALSE,
-                            zitype = c("response","conditional","zprob"),
+                            ptype = c("response","selection","prob"),
                             debug=FALSE,
                             ...)
 {
@@ -66,36 +63,31 @@ predict.glmmTMB <- function(object,newdata=NULL,
 
   w <- which(is.na(augFr[[respNm]]))
 
-  ## ugh. as.numeric() is to fix GH#178
-  ## not sure if we need to be working harder to translate
-  ##   the variety of possible binomial inputs in this column?
-  ## binomial()$initialize (1) needs y, nobs, weights defined;
-  ##   (2) can't handle NA values in y
   yobs <- as.numeric(augFr[[names(omi$respCol)]])
 
   ## match zitype arg with internal name
-  ziPredNm <- switch(match.arg(zitype),
+  PredNm <- switch(match.arg(ptype),
                        response="corrected",
-                       conditional="uncorrected",
-                         zprob="prob",
-                       stop("unknown zitype ",zitype))
-  ziPredCode <- .valid_zipredictcode[ziPredNm]
+                       conditional="selection",
+                         prob="prob",
+                       stop("unknown zitype ",ptype))
+  PredCode <- .valid_predictcode[PredNm]
 
   ## need eval.parent() because we will do eval(mf) down below ...
   TMBStruc <- 
         ## FIXME: make first arg of mkTMBStruc into a formula list
         ## with() interfering with eval.parent() ?
-        eval.parent(mkTMBStruc(RHSForm(omi$allForm$formula,as.form=TRUE),
-                               omi$allForm$ziformula,
-                               omi$allForm$dispformula,
+        eval.parent(mkTMBStruc(RHSForm(omi$allForm$rformula,as.form=TRUE),
+                               omi$allForm$pformula,
+                               omi$allForm$dformula,
                                mf,
                                fr=augFr,
                                yobs=yobs,
                                offset=NULL,
-                               weights=NULL,
+                               weights=NULL, #maybe change for selfisher
                                family=omi$familyStr,
                                link=omi$link,
-                               ziPredictCode=ziPredNm,
+                               PredictCode=PredNm,
                                doPredict=as.integer(se.fit),
                                whichPredict=w))
 
@@ -109,7 +101,7 @@ predict.glmmTMB <- function(object,newdata=NULL,
                            random = randomArg,
                            profile = NULL, # TODO: Optionally "beta"
                            silent = TRUE,
-                           DLL = "glmmTMB"))
+                           DLL = "selfisher"))
 
   oldPar <- object$fit$par
   newObj$fn(oldPar)  ## call once to update internal structures

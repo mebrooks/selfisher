@@ -1,20 +1,19 @@
 ##' Extract info from formulas, reTrms, etc., format for TMB
 ##' @param rformula selectivity formula
 ##' @param pformula relative fishing power formula
-##' @param dispformula dispersion formula
+##' @param dformula dispersion formula
 ##' @param mf call to model frame
 ##' @param fr frame
 ##' @param yobs observed y
 ##' @param offset offset
 ##' @param weights weights
-##' @param family character
 ##' @param link character
-##' @param ziPredictCode zero-inflation code
+##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
 ##' @param whichPredict which observations in model frame represent predictions
 ##' @keywords internal
 ##' @importFrom stats model.offset
-mkTMBStruc <- function(rformula, pformula, dispformula,
+mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
                        yobs, offset, weights,
                        family, link,
@@ -22,37 +21,20 @@ mkTMBStruc <- function(rformula, pformula, dispformula,
                        doPredict=0,
                        whichPredict=integer(0)) {
 
-    ## Handle ~0 dispersion for gaussian family.
-    mapArg <- NULL
-    if ( usesDispersion(family) && (dispformula == ~0) ) {
-        if (family != "gaussian")
-            stop("~0 dispersion not implemented for ",
-                 sQuote(family),
-                 " family")
-        ## FIXME: Depending on the final estimates, we should somehow
-        ## check that this fixed dispersion is small enough.
-        betad_init <- log( sqrt( .Machine$double.eps ) )
-        dispformula <- ~1
-        mapArg <- list(betad = factor(NA)) ## Fix betad
-    } else {
-        betad_init <- 0
-    }
-
-    ## Ignore 'dispformula' argument for non-dispersion families.
-    if ( ! usesDispersion(family) ) {
-        ## if ( dispformula != ~0 &&
-        ##      dispformula != ~1 )
-        ##     warning(sprintf("dispersion parameter ignored for family %s",
-        ##                     sQuote(family)))
-        dispformula <- ~0
-    }
-
-    ## n.b. eval.parent() chain needs to be preserved because
-    ## we are going to try to eval(mf) at the next level down,
-    ## need to be able to find data etc.
-    rList  <- eval.parent(getXReTrms(rformula, mf, fr))
-    pList    <- eval.parent(getXReTrms(pformula, mf, fr))
-    dispList  <- eval.parent(getXReTrms(dispformula, mf, fr,
+  mapArg <- NULL
+  if(link!="richards") #only richards link uses a dispersion par
+    mapArg <- list(betad = factor(NA)) ## Fix betad
+  }
+  if(pformula == ~0) {
+    betap_init <- 0 #logit(.5)
+    mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
+  }
+  ## n.b. eval.parent() chain needs to be preserved because
+  ## we are going to try to eval(mf) at the next level down,
+  ## need to be able to find data etc.
+  rList  <- eval.parent(getXReTrms(rformula, mf, fr))
+  pList  <- eval.parent(getXReTrms(pformula, mf, fr))
+  dList  <- eval.parent(getXReTrms(dformula, mf, fr,
                                         ranOK=FALSE, "dispersion"))
 
   rReStruc <- with(rList, getReStruc(reTrms, ss))
@@ -69,22 +51,20 @@ mkTMBStruc <- function(rformula, pformula, dispformula,
       offset <- rep(0,nobs)
 
   if (is.null(weights <- fr[["(weights)"]]))
-    weights <- rep(1,nobs)
+    weights <- rep(1,nobs) #needed for predict function
 
   data.tmb <- namedList(
     Xr = rList$X,
     Zr = rList$Z,
     Xp = pList$X,
     Zp = pList$Z,
-    Xd = dispList$X,
-    ## Zdisp=dispList$Z,
+    Xd = dList$X,
     yobs,
     offset,
     weights,
     ## information about random effects structure
     termsr = rReStruc,
     termsp = pReStruc,
-    family = .valid_family[family],
     link = .valid_link[link],
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
@@ -93,24 +73,21 @@ mkTMBStruc <- function(rformula, pformula, dispformula,
   getVal <- function(obj, component)
     vapply(obj, function(x) x[[component]], numeric(1))
 
-  ## safer initialization for link functions that might give
-  ##  illegal predictions for certain families
-  beta_init <-  if (link %in% c("identity","inverse")) 1 else 0
 
   parameters <- with(data.tmb,
                      list(
-                       betar    = rep(beta_init, ncol(X)),
-                       br       = rep(beta_init, ncol(Z)),
-                       betap  = rep(0, ncol(Xzi)),
-                       bp     = rep(0, ncol(Zzi)),
+                       betar    = rep(0, ncol(Xr)),
+                       br       = rep(0, ncol(Zr)),
+                       betap    = rep(0, ncol(Xp)),
+                       bp       = rep(0, ncol(Zp)),
                        thetar   = rep(0, sum(getVal(rReStruc,"blockNumTheta"))),
-                       thetap = rep(0, sum(getVal(pReStruc,  "blockNumTheta"))),
-                       betad   = rep(betad_init, ncol(Xd))
-                     ))
+                       thetap   = rep(0, sum(getVal(pReStruc,  "blockNumTheta"))),
+                       betad    = rep(0, ncol(Xd))#d=1 makes richards become logisitc
+                    ))
   randomArg <- c(if(ncol(data.tmb$Zr)   > 0) "br",
                  if(ncol(data.tmb$Zp) > 0) "bp")
   namedList(data.tmb, parameters, mapArg, randomArg, grpVar,
-            rList, pList, dispList, rReStruc, pReStruc)
+            rList, pList, dList, rReStruc, pReStruc)
 }
 
 ##' Create X and random effect terms from formula
@@ -210,7 +187,7 @@ getGrpVar <- function(x)
 ##' blocksize and number of blocks.  Mostly for internal use.
 ##' @param reTrms random-effects terms list
 ##' @param ss a character string indicating a valid covariance structure. 
-##' Must be one of \code{names(glmmTMB:::.valid_covstruct)};
+##' Must be one of \code{names(selfisher:::.valid_covstruct)};
 ##' default is to use an unstructured  variance-covariance
 ##' matrix (\code{"us"}) for all blocks).
 ##' @return a list
@@ -296,53 +273,23 @@ getReStruc <- function(reTrms, ss=NULL) {
     }
 }
 
-.noDispersionFamilies <- c("binomial", "poisson", "truncated_poisson")
-
-## BMB: why not just sigma(x)!=1.0 ... ? (redundant with sigma.glmmTMB)
-usesDispersion <- function(x) {
-    is.na(match(x, .noDispersionFamilies))
-    ## !x %in% .noDispersionFamilies
-}
-
-.classicDispersionFamilies <- c("gaussian","Gamma","t")
-
 ## select only desired pieces from results of getXReTrms
 stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
   c(xrt$reTrms[whichReTrms],setNames(xrt[which],which))
 }
 
-.okWeightFamilies <- c("binomial", "betabinomial")
-
-okWeights <- function(x) {
-  !is.na(match(x, .okWeightFamilies))
-  ## x %in% .okWeightFamilies
-}	
-
 ##' Fit models with TMB
 ##' @param rformula combined fixed and random effects formula for the selectivity model, following lme4
-##'     syntax
-##' @param data data frame
-##' @param family family (variance/link function) information; see \code{\link{family}} for
-##' details.  As in \code{\link{glm}}, \code{family} can be specified as (1) a character string
-##' referencing an existing family-construction function (e.g. \sQuote{"binomial"}); (2) a symbol referencing
-##' such a function (\sQuote{binomial}); or (3) the output of such a function (\sQuote{binomial()}).
-##' In addition, for families such as \code{betabinomial} that are special to \code{glmmTMB}, family
-##' can be specified as (4) a list comprising the name of the distribution and the link function
-##' (\sQuote{list(family="binomial",link="logit")}).
+##'     syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.
 ##' @param pformula a \emph{one-sided} (i.e., no response variable) formula for
 ##'     the ralaive fishing power of the test versus the control gear combining fixed and random effects:
 ##' the default \code{~0} specifies equal fishing power (p=0.5).
-##' Specifying \code{~.} will set the right-hand side of the fishing power
-##' formula identical to the right-hand side of the selectivity
-##' formula; terms can also be added or subtracted. \strong{Offset terms
-##' will automatically be dropped from the conditional effects formula.}
 ##' The relative fishing power model uses a logit link.
-##' @param dispformula a \emph{one-sided} formula for dispersion containing only fixed effects: the
-##'     default \code{~1} specifies the standard dispersion given any family.
-##'     The argument is ignored for families that do not have a dispersion parameter.
-##'     For an explanation of the dispersion parameter for each family, see (\code{\link{sigma}}).
-##'     The dispersion model uses a log link. 
-##' @param weights weights, as in \code{glm}. Only implemented for binomial and betabinomial families.
+##' @param link A character indicating the link function for the selectivity model. 
+##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
+##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
+##' @param data data frame
+##' @param weights The number of total fish caught in the test and control gear.
 ##' @param offset offset
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
@@ -354,10 +301,7 @@ okWeights <- function(x) {
 ##' @importFrom TMB MakeADFun sdreport
 ##' @details
 ##' \itemize{
-##' \item binomial models with more than one trial (i.e., not binary/Bernoulli)
-##' must be specified in the form \code{prob ~ ..., weights = N} rather than in
-##' the more typical two-column matrix (\code{cbind(successes,failures)~...}) form.
-##' \item in all cases \code{selfisher} returns maximum likelihood estimates - random effects variance-covariance matrices are not REML (so use \code{REML=FALSE} when comparing with \code{lme4::lmer}), and residual standard deviations (\code{\link{sigma}}) are not bias-corrected. Because the \code{\link{df.residual}} method for \code{glmmTMB} currently counts the dispersion parameter, one would need to multiply by \code{sqrt(nobs(fit)/(1+df.residual(fit)))} when comparing with \code{lm} ...
+##' \item in all cases \code{selfisher} returns maximum likelihood estimates - random effects variance-covariance matrices are not REML (so use \code{REML=FALSE} when comparing with \code{lme4::lmer}), and residual standard deviations (\code{\link{sigma}}) are not bias-corrected. Because the \code{\link{df.residual}} method for \code{selfisher} currently counts the dispersion parameter, one would need to multiply by \code{sqrt(nobs(fit)/(1+df.residual(fit)))} when comparing with \code{lm} ...
 ##' }
 ##' @useDynLib selfisher
 ##' @importFrom stats update
@@ -365,10 +309,10 @@ okWeights <- function(x) {
 ##' @examples
 selfisher <- function (
     rformula,
-    data = NULL,
-    family = gaussian(),
     pformula = ~0,
-    dispformula= ~1,
+    dformula = ~1,
+    data = NULL,
+    link = "logit",
     weights=NULL,
     offset=NULL,
     se=TRUE,
@@ -376,35 +320,12 @@ selfisher <- function (
     debug=FALSE
     )
 {
-
-    ## edited copy-paste from glFormula
-    ## glFormula <- function(formula, data=NULL, family = gaussian,
-    ##                       subset, weights, na.action, offset,
-    ##                       contrasts = NULL, mustart, etastart,
-    ##                       control = glmerControl(), ...) {
-
-    ## FIXME: check for offsets in ziformula/dispformula, throw an error
+    ## FIXME: check for offsets in pformula/dispformula, throw an error
 
     call <- mf <- mc <- match.call()
 
-    if (is.character(family))
-      family <- get(family, mode = "function", envir = parent.frame())
-    if (is.function(family))
-      family <- family()
-    if (is.null(family$family)) {
-      print(family)
-      stop("'family' not recognized")
-    }
-    if (!all(c("family","link") %in% names(family)))
-        stop("'family' must contain at least 'family' and 'link' components")
-    ## FIXME: warning/message if 'family' doesn't contain 'variance' ?
-
-    if (grepl("^quasi", family$family))
-        stop('"quasi" families cannot be used in glmmTMB')
-
-    ## extract family and link information from family object
-    link <- family$link
-    familyStr <- family$family
+    family <- binomial()
+    familyStr <- "binomial"
 
     ## lme4 function for warning about unused arguments in ...
     ## ignoreArgs <- c("start","verbose","devFunOnly",
@@ -419,7 +340,6 @@ selfisher <- function (
     call$rformula <- mc$rformula <- rformula <-
         as.formula(rformula, env = parent.frame())
     call$pformula <- as.formula(pformula, env=parent.frame())
-    call$dispformula <- as.formula(dispformula, env=parent.frame())
 
     ## now work on evaluating model frame
     m <- match(c("data", "subset", "weights", "na.action", "offset"),
@@ -428,16 +348,10 @@ selfisher <- function (
     mf$drop.unused.levels <- TRUE
     mf[[1]] <- as.name("model.frame")
 
-    if (inForm(pformula,quote(.))) {
-        pformula <-
-            update(RHSForm(drop.special2(rformula),as.form=TRUE),
-                   pformula)
-    }
-
     ## want the model frame to contain the union of all variables
     ## used in any of the terms
     ## combine all formulas
-    formList <- list(rformula, pformula, dispformula)
+    formList <- list(rformula, pformula)
     formList <- lapply(formList,
                    function(x) noSpecials(subbars(x), delete=FALSE))
                        ## substitute "|" by "+"; drop special
@@ -462,11 +376,9 @@ selfisher <- function (
     nobs <- nrow(fr)
     weights <- as.vector(model.weights(fr))
 
-    if(!is.null(weights) & !okWeights(familyStr)) {
-      stop("'weights' are not available for this family. See `dispformula` instead.")
+    if(is.null(weights)) {
+      stop("The total number of fish caught in the test and control gear must be specified using 'weights' argument.")
     }
-
-    if (is.null(weights)) weights <- rep(1,nobs)
     
     ## sanity checks (skipped!)
     ## wmsgNlev <- checkNlevels(reTrms$ flist, n=n, control, allow.n=TRUE)
@@ -481,21 +393,9 @@ selfisher <- function (
     ## (name *must* be 'y' to match guts of family()$initialize
     y <- fr[,respCol]
 
-    ## (1) transform 'y' appropriately for binomial models
-    ##     (2-column matrix, factor, logical -> numeric)
-    ## (2) warn on non-integer values
-    etastart <- start <- mustart <- NULL
-    if (!is.null(family$initialize)) {
-        eval(family$initialize)
-    }
-    ## binomial()$initialize does *not* coerce logical to numeric ...
-    ##  may cause downstream problems, e.g. with predict()
-    y <- as.numeric(y)
-    
-
     ## eval.parent() necessary because we will try to eval(mf) down below
     TMBStruc <- eval.parent(
-        mkTMBStruc(rformula, pformula, dispformula,
+        mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
                    yobs=y, offset, weights,
                    familyStr, link))
@@ -508,7 +408,7 @@ selfisher <- function (
                      parameters,
                      map = mapArg,
                      random = randomArg,
-                     profile = NULL, # TODO: Optionally "beta"
+                     profile = NULL,
                      silent = !verbose,
                      DLL = "selfisher"))
 
@@ -535,7 +435,7 @@ selfisher <- function (
                                                 stripReTrms),
                                 reStruc = namedList(rReStruc, pReStruc),
                                 allForm = namedList(combForm, rformula,
-                                                    pformula, dispformula)))
+                                                    pformula, dformula)))
     ## FIXME: are we including obj and frame or not?
     ##  may want model= argument as in lm() to exclude big stuff from the fit
     ## If we don't include obj we need to get the basic info out
@@ -575,7 +475,7 @@ ngrps.factor <- function(object, ...) nlevels(object)
 
 
 ##' @importFrom stats pnorm
-##' @method summary glmmTMB
+##' @method summary selfisher
 ##' @export
 summary.selfisher <- function(object,...)
 {
@@ -584,9 +484,10 @@ summary.selfisher <- function(object,...)
         warning("additional arguments ignored")
     }
     ## figure out useSc
-    sig <- sigma(object)
+    sig <- delta(object)
 
     famL <- family(object)
+    link <- link(object)
 
     mkCoeftab <- function(coefs,vcov) {
         p <- length(coefs)
@@ -619,10 +520,10 @@ summary.selfisher <- function(object,...)
     varcor <- VarCorr(object)
 					# use S3 class for now
     structure(list(logLik = llAIC[["logLik"]],
-                   family = famL$fami, link = famL$link,
+                   family = famL$fami, link = link,
 		   ngrps = ngrps(object),
                    nobs = nobs(object),
-		   coefficients = coefs, sigma = sig,
+		   coefficients = coefs, delta = sig,
 		   vcov = vcov(object),
 		   varcor = varcor, # and use formatVC(.) for printing.
 		   AICtab = llAIC[["AICtab"]], call = object$call
@@ -636,7 +537,7 @@ summary.selfisher <- function(object,...)
 ## copied from lme4:::print.summary.merMod (makes use of
 ##' @importFrom lme4 .prt.family .prt.call .prt.resids .prt.VC .prt.grps
 ##' @importFrom stats printCoefmat
-##' @method print summary.glmmTMB
+##' @method print summary.selfisher
 ##' @export
 print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
                                  signif.stars = getOption("show.signif.stars"),
@@ -662,8 +563,8 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
             .prt.grps(x$ngrps[[nn]],nobs=x$nobs)
         }
     }
-    if(trivialDisp(x)) {# if trivial print here, else below(~x) or none(~0)
-        printDispersion(x$family,x$sigma)
+    if(trivialDisp(x) & link(x)=="richards") {# if trivial print here, else below(~x) or none(~0)
+        printDispersion(x$family,x$delta)
     }
     for (nn in names(x$coefficients)) {
         cc <- x$coefficients[[nn]]
@@ -676,6 +577,6 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
     }
 
     invisible(x)
-}## print.summary.glmmTMB
+}## print.summary.selfisher
 
 
