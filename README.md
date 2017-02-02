@@ -1,6 +1,6 @@
 # selfisher
 
-`selfisher` is an R package for estimating the selectivity of fisheries gear, built using code from [glmmTMB](https://github.com/glmmTMB/glmmTMB), which is built on [Template Model Builder](https://github.com/kaskr/adcomp), which is in turn built on CppAD and Eigen. It is currently pre-alpha or alpha software. Fixed and random effects models can be specified for the selectivity and  relative fishing power components of the model.
+`selfisher` is an R package for estimating the selectivity of fisheries gear, built using code from [glmmTMB](https://github.com/glmmTMB/glmmTMB), which is built on [Template Model Builder](https://github.com/kaskr/adcomp), which is in turn built on CppAD and Eigen. It is currently pre-alpha or alpha software. Fixed and random effects models can be specified for the selectivity and  relative fishing power components of the model. Possible links for the selectivity model include logit (i.e. logistic), probit (i.e. normal probability ogive), complimentary log-log (i.e. negative extreme value), log-log (i.e. extreme value/Gompertz), and Richards.
 
 ## Installation 
 
