@@ -21,13 +21,12 @@ getParList <- function(object) {
 ##'
 ##' @param object a \dQuote{selfisher} fitted object
 ##' @param \dots (ignored; for method compatibility)
-##' @export delta
-##' @method delta selfisher
 ##' @export
-delta.selfisher <- function(object, ...) {
+richardsdelta <- function(object, ...) {
     pl <- getParList(object)
     ff <- object$modelInfo$link
     if (ff=="richards") return(exp(pl$betad))
+    else return(1)
 }
 
 

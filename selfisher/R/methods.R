@@ -353,27 +353,6 @@ cat.f2 <- function(call,component,label,lwid,fwid=NULL,cind=NULL) {
     }
 }
 
-## reworked version
-.prt.call.selfisher2 <- function(call, long = TRUE) {
-  labs <- c("Selectivity formula","Relative fishing power","Richards exponent","Data",
-            "Weights","Offset","Control","Subset")
-  components <- c("rformula","pformula","dformula",
-                  "data","weights","offset","control","subset")
-
-  lwid1 <- max(nchar(labs[1:3]))+2
-  for (i in 1:3) {
-      cat.f2(call,components[i],labs[i],lwid1,cind=2)
-  }
-  lwid2 <- max(nchar(labs[-(1:3)]))+1
-  for (i in 4:6) {
-      cat.f2(call,components[i],labs[i],lwid2)
-  }
-  if (long && length(cc <- call$control) &&
-      (deparse(cc) != "lmerControl()"))
-      cat.f2(call,"Control","control",lwid2)
-  cat.f2(call,"Subset","subset",lwid2)
-}
-
 ## following https://github.com/selfisher/selfisher/issues/134#issuecomment-160805926
 ## don't use ##' until we're ready to generate a man page
 ## @param ff name of family (character)
@@ -386,8 +365,6 @@ printDispersion <- function(ff,s) {
         cat(sprintf("\n%s for %s family (%s): %s",
                     dname,ff,sname,
                     formatC(sval,digits=3)),"\n")
-    }
-    NULL
 }
 
 ##' @importFrom lme4 .prt.aictab
@@ -423,7 +400,7 @@ print.selfisher <-
   cat(do.call(paste,c(gvec,list(sep=" / "))),fill=TRUE)
 
   if(trivialDisp(x) & link(x)=="richards") {# if trivial print here, else below(~x) or none(~0)
-    printDispersion(x$modelInfo$familyStr,delta(x))  
+    printDispersion(x$modelInfo$familyStr,richardsdelta(x))  
   } 
   ## Fixed effects:
   if(length(cf <- fixef(x)) > 0) {
@@ -448,21 +425,22 @@ model.frame.selfisher <- function(formula, ...) {
 ##' @importFrom stats fitted model.response residuals
 ##' @export
 residuals.selfisher <- function(object, type=c("response", "pearson"), ...) {
-    type <- match.arg(type)
-    r <- model.response(object$frame)-fitted(object)
-    switch(type,
-           response=r,
-           pearson={
-               if (is.null(v <- family(object)$variance))
-                   stop("variance function undefined for family ",
-                        sQuote(family(object)$family),"; cannot compute",
-                        " Pearson residuals")
-               vv <- switch(length(formals(v)),
-                            v(fitted(object)),
-                            v(fitted(object),delta(object)),
-                            stop("variance function should take 1 or 2 arguments"))
-               r/sqrt(vv)
-           })
+     stop("residuals are not implemented yet")
+#    type <- match.arg(type)
+#    r <- model.response(object$frame)-fitted(object)
+#    switch(type,
+#           response=r,
+#           pearson={
+#               if (is.null(v <- family(object)$variance))
+#                   stop("variance function undefined for family ",
+#                        sQuote(family(object)$family),"; cannot compute",
+#                        " Pearson residuals")
+#               vv <- switch(length(formals(v)),
+#                            v(fitted(object)),
+#                            v(fitted(object),delta(object)),
+#                            stop("variance function should take 1 or 2 arguments"))
+#               r/sqrt(vv)
+#           })
 }
 
 ## copied from 'stats'

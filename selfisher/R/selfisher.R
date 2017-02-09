@@ -1,7 +1,7 @@
 ##' Extract info from formulas, reTrms, etc., format for TMB
 ##' @param rformula selectivity formula
 ##' @param pformula relative fishing power formula
-##' @param dformula dispersion formula
+##' @param dformula Richards delta parameter formula
 ##' @param mf call to model frame
 ##' @param fr frame
 ##' @param yobs observed y
@@ -17,15 +17,17 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
                        yobs, offset, weights,
                        family, link,
-                       pPredictCode="corrected",
+                       pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0)) {
 
   mapArg <- NULL
-  if(link!="richards") #only richards link uses a dispersion par
-    mapArg <- list(betad = factor(NA)) ## Fix betad
-  }
-  if(pformula == ~0) {
+#  if(link!="richards") {#only richards link uses a dispersion par
+#    mapArg <- list(betad = factor(NA)) ## Fix betad
+#  }
+  ## default p=0.5 for equal fishing power in test and control codend
+  if(is.null(pformula)) {
+    pformula=~1
     betap_init <- 0 #logit(.5)
     mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
   }
@@ -68,6 +70,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     link = .valid_link[link],
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
+    Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1,
     whichPredict = whichPredict
   )
   getVal <- function(obj, component)
@@ -76,7 +79,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 
   parameters <- with(data.tmb,
                      list(
-                       betar    = rep(0, ncol(Xr)),
+                       betar    = c(-100, rep(0, ncol(Xr)-1)),
                        br       = rep(0, ncol(Zr)),
                        betap    = rep(0, ncol(Xp)),
                        bp       = rep(0, ncol(Zp)),
@@ -286,8 +289,8 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' the default \code{~0} specifies equal fishing power (p=0.5).
 ##' The relative fishing power model uses a logit link.
 ##' @param link A character indicating the link function for the selectivity model. 
-##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
 ##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
+##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
 ##' @param data data frame
 ##' @param weights The number of total fish caught in the test and control gear.
 ##' @param offset offset
@@ -309,7 +312,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @examples
 selfisher <- function (
     rformula,
-    pformula = ~0,
+    pformula =NULL,
     dformula = ~1,
     data = NULL,
     link = "logit",
@@ -326,6 +329,8 @@ selfisher <- function (
 
     family <- binomial()
     familyStr <- "binomial"
+
+    if(link!="richards") dformula = ~0
 
     ## lme4 function for warning about unused arguments in ...
     ## ignoreArgs <- c("start","verbose","devFunOnly",
@@ -388,7 +393,7 @@ selfisher <- function (
     ## store info on location of response variable
     respCol <- attr(terms(fr), "response")
     names(respCol) <- names(fr)[respCol]
-
+     
     ## extract response variable
     ## (name *must* be 'y' to match guts of family()$initialize
     y <- fr[,respCol]
@@ -484,10 +489,10 @@ summary.selfisher <- function(object,...)
         warning("additional arguments ignored")
     }
     ## figure out useSc
-    sig <- delta(object)
+    sig <- richardsdelta(object)
 
-    famL <- family(object)
-    link <- link(object)
+    famL <- object$family
+    link <- object$link
 
     mkCoeftab <- function(coefs,vcov) {
         p <- length(coefs)
@@ -520,7 +525,7 @@ summary.selfisher <- function(object,...)
     varcor <- VarCorr(object)
 					# use S3 class for now
     structure(list(logLik = llAIC[["logLik"]],
-                   family = famL$fami, link = link,
+                   family = famL, link = link,
 		   ngrps = ngrps(object),
                    nobs = nobs(object),
 		   coefficients = coefs, delta = sig,
@@ -535,7 +540,7 @@ summary.selfisher <- function(object,...)
 }
 
 ## copied from lme4:::print.summary.merMod (makes use of
-##' @importFrom lme4 .prt.family .prt.call .prt.resids .prt.VC .prt.grps
+##' @importFrom lme4 .prt.family .prt.resids .prt.VC .prt.grps
 ##' @importFrom stats printCoefmat
 ##' @method print summary.selfisher
 ##' @export

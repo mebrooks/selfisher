@@ -19,7 +19,7 @@
 predict.selfisher <- function(object,newdata=NULL,
                             se.fit=FALSE,
                             re.form, allow.new.levels=FALSE,
-                            ptype = c("response","selection","prob"),
+                            type = c("response","selection","prob"),
                             debug=FALSE,
                             ...)
 {
@@ -66,12 +66,12 @@ predict.selfisher <- function(object,newdata=NULL,
   yobs <- as.numeric(augFr[[names(omi$respCol)]])
 
   ## match zitype arg with internal name
-  PredNm <- switch(match.arg(ptype),
-                       response="corrected",
-                       conditional="selection",
-                         prob="prob",
-                       stop("unknown zitype ",ptype))
-  PredCode <- .valid_predictcode[PredNm]
+  PredNm <- switch(match.arg(type),
+                       response="response",
+                       selection="selection",
+                       prob="prob",
+                       stop("unknown type ",type))
+  PredCode <- .valid_ppredictcode[PredNm]
 
   ## need eval.parent() because we will do eval(mf) down below ...
   TMBStruc <- 
@@ -87,7 +87,7 @@ predict.selfisher <- function(object,newdata=NULL,
                                weights=NULL, #maybe change for selfisher
                                family=omi$familyStr,
                                link=omi$link,
-                               PredictCode=PredNm,
+                               pPredictCode=PredNm,
                                doPredict=as.integer(se.fit),
                                whichPredict=w))
 

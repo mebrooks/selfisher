@@ -1,10 +1,10 @@
 ## Auto generated - do not edit by hand
 .valid_link <- c(
-  logit               = 1,
-  probit              = 2,
-  cloglog             = 3,
-  loglog              = 4,
-  richards            = 5
+  logit             = 0,
+  probit            = 1,
+  cloglog           = 2,
+  loglog            = 3,
+  richards          = 4
 )
 .valid_family <- c(
   binomial = 100
@@ -20,8 +20,8 @@
   mat = 7,
   toep = 8
 )
-.valid_predictcode <- c(
-  corrected = 0,
-  uncorrected = 1,
+.valid_ppredictcode <- c(
+  response = 0,
+  selection = 1,
   prob = 2
 )

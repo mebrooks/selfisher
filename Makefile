@@ -33,7 +33,7 @@ $(PACKAGE)/R/enum.R: $(PACKAGE)/src/selfisher.cpp
 	grep _covstruct.*= $(PACKAGE)/src/selfisher.cpp | sed s/_covstruct//g >> $@
 	echo ")" >> $@
 
-	echo ".valid_zipredictcode <- c(" >> $@
+	echo ".valid_ppredictcode <- c(" >> $@
 	grep _ppredictcode.*= $(PACKAGE)/src/selfisher.cpp | sed s/_ppredictcode//g >> $@
 	echo ")" >> $@
 

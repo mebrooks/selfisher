@@ -87,11 +87,11 @@ enum valid_family {
 };
 
 enum valid_link {
-  logit_link             = 1,
-  probit_link            = 2,
-  cloglog_link           = 3,
-  loglog_link            = 4,
-  richards_link          = 5
+  logit_link             = 0,
+  probit_link            = 1,
+  cloglog_link           = 2,
+  loglog_link            = 3,
+  richards_link          = 4
 };
 
 enum valid_covStruct {
@@ -106,11 +106,36 @@ enum valid_covStruct {
   toep_covstruct = 8
 };
 
-enum valid_PredictCode {
-  corrected_predictcode = 0,
-  uncorrected_predictcode = 1,
-  prob_predictcode = 2
+enum valid_ppredictCode {
+  response_ppredictcode = 0,
+  selection_ppredictcode = 1,
+  prob_ppredictcode = 2
 };
+
+template<class Type>
+Type linkfun(Type p, Type etad, int link) {
+  Type ans;
+  switch (link) {
+  case logit_link:
+    ans = logit(p);
+    break;
+  case probit_link:
+    ans = qnorm(p);
+    break;
+  case cloglog_link:
+    ans = log(-log(Type(1)-p));
+    break;
+  case loglog_link:
+    ans = -log(-log(p));
+    break;
+  case richards_link:
+    ans = logit(pow(p, exp(etad)));
+    break;
+  default:
+    error("Link not implemented!");
+  } // End switch
+  return ans;
+}
 
 template<class Type>
 Type inverse_linkfun(Type eta, Type etad, int link) {
@@ -129,7 +154,7 @@ Type inverse_linkfun(Type eta, Type etad, int link) {
     ans = exp(-exp(-eta));
     break;
   case richards_link:
-    ans = pow(exp(eta)/(1+exp(eta)), 1/exp(etad));
+    ans = pow(exp(eta)/(Type(1)+exp(eta)), Type(1)/exp(etad));
     break;
   default:
     error("Link not implemented!");
@@ -421,6 +446,12 @@ Type allterms_nll(vector<Type> &u, vector<Type> theta,
   return ans;
 }
 
+template <class Type>
+Type calcLprob(Type etar, Type L, Type b, Type etad, Type prob, int link) {
+  Type Lprob = (linkfun(prob, etad, link) - etar + L*b)/b;
+  return Lprob;
+}
+
 template<class Type>
 Type objective_function<Type>::operator() ()
 {
@@ -455,6 +486,7 @@ Type objective_function<Type>::operator() ()
   // Flags
   DATA_INTEGER(pPredictCode);
   DATA_INTEGER(doPredict);
+  DATA_INTEGER(Lindex);
   DATA_IVECTOR(whichPredict);
 
   // Joint negative log-likelihood
@@ -474,14 +506,15 @@ Type objective_function<Type>::operator() ()
   for (int i = 0; i < r.size(); i++)
     r(i) = inverse_linkfun(etar(i), etad(i), link);
   vector<Type> p = invlogit(etap);
- //phi as in eqn 3 of Wileman et al. 1996, not like in selfisher
-  vector<Type> logit_phi = log(p)+log(r)-log(Type(1)-p);
+  //phi=p*r/(p*r+Type(1)-p) as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
+  vector<Type> logit_phi = log(p)+log(r)-log(Type(1.0)-p);
 
   // Observation likelihood
   for (int i=0; i < yobs.size(); i++){
     if ( !selfisher::isNA(yobs(i)) ) {
       jnll -= dbinom_robust(yobs(i) * weights(i), weights(i), logit_phi(i), true);
-      SIMULATE{yobs(i) = rbinom(weights(i), invlogit(logit_phi(i));}
+      //jnll -= dbinom(yobs(i) * weights(i), weights(i), invlogit(logit_phi(i)), true);
+      //SIMULATE{yobs(i) = rbinom(weights(i), invlogit(logit_phi(i)));}
     }
   }
 
@@ -512,13 +545,14 @@ Type objective_function<Type>::operator() ()
   SIMULATE{ REPORT(yobs);}
   // For predict
   switch(pPredictCode){
-  case corrected_predictcode:
+  case response_ppredictcode:
     r = invlogit(logit_phi); // Account for relative fishing power
+    //r=phi;
     break;
-  case uncorrected_predictcode:
+  case selection_ppredictcode:
     r = r; // Predict size selectivity
     break;
-  case prob_predictcode:
+  case prob_ppredictcode:
     r = p; // Predict relative fishing power
     break;
   default:
@@ -531,6 +565,21 @@ Type objective_function<Type>::operator() ()
   // ADREPORT expensive for long vectors - only needed by predict()
   // method.
   if (doPredict) ADREPORT(mu_predict);
+
+  vector<Type> L25(etar.size());
+  vector<Type> L50(etar.size());
+  vector<Type> L75(etar.size());
+  vector<Type> SR(etar.size());
+  for(int i=0; i<etar.size(); i++) {
+    L25(i)= calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.25), link);
+    L50(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.5), link);
+    L75(i)= calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.75), link);
+  }
+  SR= L75-L25;
+  ADREPORT(L25);
+  ADREPORT(L50);
+  ADREPORT(L75);
+  ADREPORT(SR);
 
   return jnll;
 }
