@@ -36,7 +36,10 @@ trivialDisp <- function(object) {
     ## This version works on summary object or fitted model object
     ## FIXME: is there a better way to strip the environment before
     ## comparing?
-    identical(deparse(object$call$dformula),"~1")
+    #identical(deparse(object$call$dformula),"~1")
+    object$modelInfo$family$link!="richards" ||(
+      identical(deparse(object$call$dformula),"~1") & 
+      object$modelInfo$family$link=="richards")
 }
 trivialFixef <- function(xnm,nm) {
     length(xnm)==0 ||
@@ -249,7 +252,7 @@ vcov.selfisher <- function(object, full=FALSE, ...) {
       else paste(tag,nn,sep="~")
   }
 
-  nameList <- setNames(list(colnames(getME(object,"X")),
+  nameList <- setNames(list(colnames(getME(object,"Xr")),
                        mkNames("p"),
                        mkNames("d")),
                 names(cNames))
@@ -355,15 +358,14 @@ cat.f2 <- function(call,component,label,lwid,fwid=NULL,cind=NULL) {
 
 ## following https://github.com/selfisher/selfisher/issues/134#issuecomment-160805926
 ## don't use ##' until we're ready to generate a man page
-## @param ff name of family (character)
 ## @param s delta (results of delta(x) for original object
-printDispersion <- function(ff,s) {
+printDispersion <- function(s) {
     
         dname <- "Richards exponent parameter"
         sname <- "delta"
         sval <- s
-        cat(sprintf("\n%s for %s family (%s): %s",
-                    dname,ff,sname,
+        cat(sprintf("\n%s (%s): %s",
+                    dname,sname,
                     formatC(sval,digits=3)),"\n")
 }
 
@@ -399,8 +401,8 @@ print.selfisher <-
   }
   cat(do.call(paste,c(gvec,list(sep=" / "))),fill=TRUE)
 
-  if(trivialDisp(x) & link(x)=="richards") {# if trivial print here, else below(~x) or none(~0)
-    printDispersion(x$modelInfo$familyStr,richardsdelta(x))  
+  if(trivialDisp(x) & x$modelInfo$link=="richards") {# if trivial print here, else below(~x) or none(~0)
+    printDispersion(richardsdelta(x))  
   } 
   ## Fixed effects:
   if(length(cf <- fixef(x)) > 0) {
