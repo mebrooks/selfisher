@@ -16,21 +16,20 @@
 mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
                        yobs, offset, weights,
-                       family, link,
+                       family, link_char,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0)) {
 
   mapArg <- NULL
-#  if(link!="richards") {#only richards link uses a dispersion par
-#    mapArg <- list(betad = factor(NA)) ## Fix betad
-#  }
-  ## default p=0.5 for equal fishing power in test and control codend
-  if(is.null(pformula)) {
+
+  ## p=0.5 for equal fishing power in test and control codend
+  if(pformula == ~0) {
     pformula=~1
-    betap_init <- 0 #logit(.5)
+    betap_init <- 0 #logit(.5) #p always has logit link
     mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
   }
+
   ## n.b. eval.parent() chain needs to be preserved because
   ## we are going to try to eval(mf) at the next level down,
   ## need to be able to find data etc.
@@ -67,7 +66,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     ## information about random effects structure
     termsr = rReStruc,
     termsp = pReStruc,
-    link = .valid_link[link],
+    link = .valid_link[link_char],
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
     Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1,
@@ -79,20 +78,32 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 
   parameters <- with(data.tmb,
                      list(
-                       betar    = c(-100, rep(0, ncol(Xr)-1)),
+                       betar    = c(interceptinit(link_char), rep(0, ncol(Xr)-1)),
                        br       = rep(0, ncol(Zr)),
                        betap    = rep(0, ncol(Xp)),
                        bp       = rep(0, ncol(Zp)),
                        thetar   = rep(0, sum(getVal(rReStruc,"blockNumTheta"))),
                        thetap   = rep(0, sum(getVal(pReStruc,  "blockNumTheta"))),
-                       betad    = rep(0, ncol(Xd))#d=1 makes richards become logisitc
+                       betad    = rep(0, ncol(Xd))# d=1 makes richards become logisitc
                     ))
-  randomArg <- c(if(ncol(data.tmb$Zr)   > 0) "br",
+  randomArg <- c(if(ncol(data.tmb$Zr) > 0) "br",
                  if(ncol(data.tmb$Zp) > 0) "bp")
   namedList(data.tmb, parameters, mapArg, randomArg, grpVar,
             rList, pList, dList, rReStruc, pReStruc)
 }
 
+##' Initialize the intercept baed on the link funciton
+##' Assuming catchability of length 0 indivs is near 0
+##' @param link character
+interceptinit <- function(link) {
+  r0 = 1e-12
+  switch(link,
+         "logit"    = log(r0/(1-r0)),
+         "probit"   = qnorm(r0),
+         "cloglog"  = log(-log(1-r0)),
+         "loglog"   = -log(-log(r0)),
+         "richards" = log(r0/(1-r0)))
+}
 ##' Create X and random effect terms from formula
 ##' @param formula current formula, containing both fixed & random effects
 ##' @param mf matched call
@@ -286,7 +297,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##'     syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.
 ##' @param pformula a \emph{one-sided} (i.e., no response variable) formula for
 ##'     the ralaive fishing power of the test versus the control gear combining fixed and random effects:
-##' the default \code{~0} specifies equal fishing power (p=0.5).
+##' \code{~0} can be used to specify equal fishing power (p=0.5).
 ##' The relative fishing power model uses a logit link.
 ##' @param link A character indicating the link function for the selectivity model. 
 ##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
@@ -312,7 +323,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @examples
 selfisher <- function (
     rformula,
-    pformula =NULL,
+    pformula = ~1,
     dformula = ~1,
     data = NULL,
     link = "logit",
@@ -330,8 +341,6 @@ selfisher <- function (
     family <- binomial()
     familyStr <- "binomial"
 
-    if(link!="richards") dformula = ~0
-
     ## lme4 function for warning about unused arguments in ...
     ## ignoreArgs <- c("start","verbose","devFunOnly",
     ##   "optimizer", "control", "nAGQ")
@@ -342,9 +351,16 @@ selfisher <- function (
     # substitute evaluated versions
     ## FIXME: denv leftover from lme4, not defined yet
 
-    call$rformula <- mc$rformula <- rformula <-
-        as.formula(rformula, env = parent.frame())
-    call$pformula <- as.formula(pformula, env=parent.frame())
+    environment(rformula) <- parent.frame()
+    call$rformula <- mc$rformula <- rformula
+
+    environment(pformula) <- environment(rformula)
+    call$pformula <- pformula
+
+    environment(dformula) <- environment(rformula)
+    call$dformula <- dformula
+
+    if(link!="richards") dformula = ~0
 
     ## now work on evaluating model frame
     m <- match(c("data", "subset", "weights", "na.action", "offset"),
@@ -371,7 +387,7 @@ selfisher <- function (
     }
 
     mf$formula <- combForm
-    fr <- eval.parent(mf)
+    fr <- eval(mf,envir=environment(formula),enclos=parent.frame())
     
     ## FIXME: throw an error *or* convert character to factor
     ## convert character vectors to factor (defensive)
@@ -403,7 +419,7 @@ selfisher <- function (
         mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
                    yobs=y, offset, weights,
-                   familyStr, link))
+                   family=familyStr, link_char=link))
 
     ## short-circuit
     if(debug) return(TMBStruc)
@@ -430,9 +446,21 @@ selfisher <- function (
     } else {
         sdr <- NULL
     }
-    if(!is.null(sdr$pdHess))if(!sdr$pdHess) warning(paste0("Model convergence problem. Hessian is not positive definite. ", 
-                             "This may indicate that a model is overparameterized."))
-	
+    if(!is.null(sdr$pdHess)) {
+      if(!sdr$pdHess) {
+        warning(paste0("Model convergence problem; ",
+                       "non-positive-definite Hessian matrix. ", 
+                       "See vignette('troubleshooting')"))
+      } else {
+        eigval <- try(1/eigen(sdr$cov.fixed)$values, silent=TRUE)
+        if( is(eigval, "try-error") || ( min(eigval) < .Machine$double.eps*10 ) ) {
+          warning(paste0("Model convergence problem; ",
+                       "extreme or very small eigen values detected. ", 
+                       "See vignette('troubleshooting')"))
+        }
+      }
+    }
+
     modelInfo <- with(TMBStruc,
                       namedList(nobs, respCol, grpVar, familyStr, family, link,
                                 ## FIXME:apply condList -> cond earlier?
@@ -491,8 +519,8 @@ summary.selfisher <- function(object,...)
     ## figure out useSc
     sig <- richardsdelta(object)
 
-    famL <- object$family
-    link <- object$link
+    famL <- family(object)$family
+    link <- object$modelInfo$link
 
     mkCoeftab <- function(coefs,vcov) {
         p <- length(coefs)
@@ -568,9 +596,9 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
             .prt.grps(x$ngrps[[nn]],nobs=x$nobs)
         }
     }
-    if(trivialDisp(x) & link(x)=="richards") {# if trivial print here, else below(~x) or none(~0)
-        printDispersion(x$family,x$delta)
-    }
+   if((x$call$dformula== ~1)&(x$link=="richards")) {# if trivial print here, else below(~x) or none(~0)
+    printDispersion(x$delta)  
+   }
     for (nn in names(x$coefficients)) {
         cc <- x$coefficients[[nn]]
         p <- length(cc)

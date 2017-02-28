@@ -96,14 +96,14 @@ VarCorr.selfisher <- function(x, sigma = 1, ... )
         ## usesDispersion(familyStr)
     } else TRUE
 
-    vc.cond <- if(length(cn <- reT$cond$cnms))
-        mkVC(cor = xrep$corr,  sd = xrep$sd,   cnms = cn,
+    vc.r <- if(length(cn <- reT$r$cnms))
+        mkVC(cor = xrep$corrr,  sd = xrep$sdr,   cnms = cn,
              sc = sigma, useSc = useSc)
-    vc.zi   <- if(length(cn <- reT$zi$cnms))
-        mkVC(cor = xrep$corrzi, sd = xrep$sdzi, cnms = cn,
+    vc.p   <- if(length(cn <- reT$p$cnms))
+        mkVC(cor = xrep$corrp, sd = xrep$sdp, cnms = cn,
              sc = sigma, useSc = useSc)
-    structure(list(cond = vc.cond, zi = vc.zi),
-	      sc = usesDispersion(familyStr), ## 'useScale'
+    structure(list(r = vc.r, p = vc.p),
+	      sc = (x$modelInfo$family$link=="richards"), ## 'useScale'
 	      class = "VarCorr.selfisher")
 }
 

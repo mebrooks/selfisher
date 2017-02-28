@@ -571,11 +571,11 @@ Type objective_function<Type>::operator() ()
   vector<Type> L75(etar.size());
   vector<Type> SR(etar.size());
   for(int i=0; i<etar.size(); i++) {
-    L25(i)= calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.25), link);
+    L25(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.25), link);
     L50(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.5), link);
-    L75(i)= calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.75), link);
+    L75(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.75), link);
   }
-  SR= L75-L25;
+  SR = L75-L25;
   ADREPORT(L25);
   ADREPORT(L50);
   ADREPORT(L75);
