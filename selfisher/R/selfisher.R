@@ -8,6 +8,7 @@
 ##' @param offset offset
 ##' @param weights weights
 ##' @param link character
+##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
 ##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
 ##' @param whichPredict which observations in model frame represent predictions
@@ -16,7 +17,7 @@
 mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
                        yobs, offset, weights,
-                       family, link_char,
+                       family, link_char, cc,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0)) {
@@ -25,9 +26,14 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 
   ## p=0.5 for equal fishing power in test and control codend
   if(pformula == ~0) {
-    pformula=~1
+    pformula = ~1
     betap_init <- 0 #logit(.5) #p always has logit link
     mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
+  }
+  if(cc) {
+  	pformula = ~1
+  	betap_init <- log((1-.Machine$double.eps)/.Machine$double.eps) # logit(1)
+  	mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
   }
 
   ## n.b. eval.parent() chain needs to be preserved because
@@ -92,11 +98,11 @@ mkTMBStruc <- function(rformula, pformula, dformula,
             rList, pList, dList, rReStruc, pReStruc)
 }
 
-##' Initialize the intercept baed on the link funciton
+##' Initialize the intercept based on the link funciton
 ##' Assuming catchability of length 0 indivs is near 0
 ##' @param link character
 interceptinit <- function(link) {
-  r0 = 1e-12
+  r0 = .Machine$double.eps*100
   switch(link,
          "logit"    = log(r0/(1-r0)),
          "probit"   = qnorm(r0),
@@ -302,6 +308,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param link A character indicating the link function for the selectivity model. 
 ##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
+##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
 ##' @param data data frame
 ##' @param weights The number of total fish caught in the test and control gear.
 ##' @param offset offset
@@ -325,6 +332,7 @@ selfisher <- function (
     rformula,
     pformula = ~1,
     dformula = ~1,
+    cc = FALSE,
     data = NULL,
     link = "logit",
     weights=NULL,
@@ -419,7 +427,7 @@ selfisher <- function (
         mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
                    yobs=y, offset, weights,
-                   family=familyStr, link_char=link))
+                   family=familyStr, link_char=link, cc=cc))
 
     ## short-circuit
     if(debug) return(TMBStruc)
