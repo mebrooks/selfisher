@@ -426,23 +426,27 @@ model.frame.selfisher <- function(formula, ...) {
 ##' @param \dots ignored, for method compatibility
 ##' @importFrom stats fitted model.response residuals
 ##' @export
-residuals.selfisher <- function(object, type=c("response", "pearson"), ...) {
-     stop("residuals are not implemented yet")
-#    type <- match.arg(type)
-#    r <- model.response(object$frame)-fitted(object)
-#    switch(type,
-#           response=r,
-#           pearson={
-#               if (is.null(v <- family(object)$variance))
-#                   stop("variance function undefined for family ",
-#                        sQuote(family(object)$family),"; cannot compute",
-#                        " Pearson residuals")
-#               vv <- switch(length(formals(v)),
-#                            v(fitted(object)),
-#                            v(fitted(object),delta(object)),
-#                            stop("variance function should take 1 or 2 arguments"))
-#               r/sqrt(vv)
-#           })
+residuals.selfisher <- function(object, type=c("response", "pearson", "deviance"), ...) {
+#     stop("residuals are not implemented yet")
+    type <- match.arg(type)
+    r <- model.response(object$frame)-fitted(object)
+    switch(type,
+           response=r,
+           pearson={
+               if (is.null(v <- family(object)$variance))
+                   stop("variance function undefined for family ",
+                        sQuote(family(object)$family),"; cannot compute",
+                        " Pearson residuals")
+               vv <- switch(length(formals(v)),
+                            v(fitted(object)),
+                            v(fitted(object),delta(object)),
+                            stop("variance function should take 1 or 2 arguments"))
+               r/sqrt(vv)
+           },
+           deviance={
+               stop("deviance residuals are not yet implemneted")
+           }
+       )
 }
 
 ## copied from 'stats'

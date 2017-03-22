@@ -26,14 +26,12 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 
   ## p=0.5 for equal fishing power in test and control codend
   if(pformula == ~0) {
-    pformula = ~1
+    pformula[] <- ~1
     betap_init <- 0 #logit(.5) #p always has logit link
     mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
   }
   if(cc) {
-  	pformula = ~1
-  	betap_init <- log((1-.Machine$double.eps)/.Machine$double.eps) # logit(1)
-  	mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
+  	pformula[] <- ~0 #no p in cc models
   }
 
   ## n.b. eval.parent() chain needs to be preserved because
@@ -60,6 +58,8 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   if (is.null(weights <- fr[["(weights)"]]))
     weights <- rep(1,nobs) #needed for predict function
 
+  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
+  if(length(Lindex)!=1) Lindex = -1 #flag for complex function => no L50 or SR
   data.tmb <- namedList(
     Xr = rList$X,
     Zr = rList$Z,
@@ -75,7 +75,8 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     link = .valid_link[link_char],
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
-    Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1,
+    Lindex = Lindex,
+    cc = as.numeric(cc),
     whichPredict = whichPredict
   )
   getVal <- function(obj, component)
@@ -102,7 +103,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 ##' Assuming catchability of length 0 indivs is near 0
 ##' @param link character
 interceptinit <- function(link) {
-  r0 = .Machine$double.eps*100
+  r0 = 1e-12
   switch(link,
          "logit"    = log(r0/(1-r0)),
          "probit"   = qnorm(r0),
@@ -308,7 +309,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param link A character indicating the link function for the selectivity model. 
 ##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
-##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
+##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
 ##' @param data data frame
 ##' @param weights The number of total fish caught in the test and control gear.
 ##' @param offset offset
@@ -470,7 +471,7 @@ selfisher <- function (
     }
 
     modelInfo <- with(TMBStruc,
-                      namedList(nobs, respCol, grpVar, familyStr, family, link,
+                      namedList(nobs, respCol, grpVar, familyStr, family, link, cc,
                                 ## FIXME:apply condList -> cond earlier?
                                 reTrms = lapply(list(r=rList, p=pList),
                                                 stripReTrms),

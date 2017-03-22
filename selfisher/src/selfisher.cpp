@@ -487,6 +487,7 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(pPredictCode);
   DATA_INTEGER(doPredict);
   DATA_INTEGER(Lindex);
+  DATA_INTEGER(cc);
   DATA_IVECTOR(whichPredict);
 
   // Joint negative log-likelihood
@@ -505,16 +506,22 @@ Type objective_function<Type>::operator() ()
   vector<Type> r(etar.size());
   for (int i = 0; i < r.size(); i++)
     r(i) = inverse_linkfun(etar(i), etad(i), link);
-  vector<Type> p = invlogit(etap);
-  //phi=p*r/(p*r+Type(1)-p) as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
-  vector<Type> logit_phi = log(p)+log(r)-log(Type(1.0)-p);
+
+  // Calculate binomial probability parameter (phi)
+  vector<Type> logit_phi(r.size());
+  vector<Type> p(etap.size());
+  if(!cc) { //trowser-trawl
+    p = invlogit(etap);
+    //phi=p*r/(p*r+Type(1)-p) as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
+    logit_phi = log(p) + log(r) - log(Type(1.0)-p);
+  } else { //cc=1 covered codend
+    logit_phi = log(r) - log(Type(1.0)-r);
+  }
 
   // Observation likelihood
   for (int i=0; i < yobs.size(); i++){
     if ( !selfisher::isNA(yobs(i)) ) {
       jnll -= dbinom_robust(yobs(i) * weights(i), weights(i), logit_phi(i), true);
-      //jnll -= dbinom(yobs(i) * weights(i), weights(i), invlogit(logit_phi(i)), true);
-      //SIMULATE{yobs(i) = rbinom(weights(i), invlogit(logit_phi(i)));}
     }
   }
 
@@ -566,21 +573,22 @@ Type objective_function<Type>::operator() ()
   // method.
   if (doPredict) ADREPORT(mu_predict);
 
-  vector<Type> L25(etar.size());
-  vector<Type> L50(etar.size());
-  vector<Type> L75(etar.size());
-  vector<Type> SR(etar.size());
-  for(int i=0; i<etar.size(); i++) {
-    L25(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.25), link);
-    L50(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.5), link);
-    L75(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.75), link);
+  if(Lindex!=-1) {
+    vector<Type> L25(etar.size());
+    vector<Type> L50(etar.size());
+    vector<Type> L75(etar.size());
+    vector<Type> SR(etar.size());
+    for(int i=0; i<etar.size(); i++) {
+      L25(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.25), link);
+      L50(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.5), link);
+      L75(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.75), link);
+    }
+    SR = L75-L25;
+    ADREPORT(L25);
+    ADREPORT(L50);
+    ADREPORT(L75);
+    ADREPORT(SR);
   }
-  SR = L75-L25;
-  ADREPORT(L25);
-  ADREPORT(L50);
-  ADREPORT(L75);
-  ADREPORT(SR);
-
   return jnll;
 }
 
