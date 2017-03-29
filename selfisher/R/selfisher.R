@@ -12,6 +12,7 @@
 ##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
 ##' @param whichPredict which observations in model frame represent predictions
+##' @param x0 vector of initial values for the size selectivity model
 ##' @keywords internal
 ##' @importFrom stats model.offset
 mkTMBStruc <- function(rformula, pformula, dformula,
@@ -20,7 +21,8 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                        family, link_char, cc,
                        pPredictCode="selection",
                        doPredict=0,
-                       whichPredict=integer(0)) {
+                       whichPredict=integer(0),
+                       x0=NULL) {
 
   mapArg <- NULL
 
@@ -82,10 +84,14 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   getVal <- function(obj, component)
     vapply(obj, function(x) x[[component]], numeric(1))
 
-
+  if(is.null(x0)) {
+    betar    = with(data.tmb, c(interceptinit(link_char), rep(0, ncol(Xr)-1)))
+  } else {
+    betar = x0
+  }
   parameters <- with(data.tmb,
                      list(
-                       betar    = c(interceptinit(link_char), rep(0, ncol(Xr)-1)),
+                       betar    = betar,
                        br       = rep(0, ncol(Zr)),
                        betap    = rep(0, ncol(Xp)),
                        bp       = rep(0, ncol(Zp)),
@@ -310,6 +316,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
 ##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
+##' @param x0 vector of initial values for the size selectivity model
 ##' @param data data frame
 ##' @param weights The number of total fish caught in the test and control gear.
 ##' @param offset offset
@@ -334,6 +341,7 @@ selfisher <- function (
     pformula = ~1,
     dformula = ~1,
     cc = FALSE,
+    x0 = NULL,
     data = NULL,
     link = "logit",
     weights=NULL,
@@ -428,7 +436,7 @@ selfisher <- function (
         mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
                    yobs=y, offset, weights,
-                   family=familyStr, link_char=link, cc=cc))
+                   family=familyStr, link_char=link, cc=cc, x0=x0))
 
     ## short-circuit
     if(debug) return(TMBStruc)
