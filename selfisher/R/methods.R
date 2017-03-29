@@ -30,13 +30,8 @@ cNames <- list(r = "Selectivity model",
                p = "Relative fishing power model",
                d = "Richards exponent model")
 
-## FIXME: this is a bit ugly. On the other hand, a single-parameter
-## dispersion model without a
 trivialDisp <- function(object) {
     ## This version works on summary object or fitted model object
-    ## FIXME: is there a better way to strip the environment before
-    ## comparing?
-    #identical(deparse(object$call$dformula),"~1")
     object$modelInfo$family$link!="richards" ||(
       identical(deparse(object$call$dformula),"~1") & 
       object$modelInfo$family$link=="richards")
@@ -356,7 +351,6 @@ cat.f2 <- function(call,component,label,lwid,fwid=NULL,cind=NULL) {
     }
 }
 
-## following https://github.com/selfisher/selfisher/issues/134#issuecomment-160805926
 ## don't use ##' until we're ready to generate a man page
 ## @param s delta (results of delta(x) for original object
 printDispersion <- function(s) {
