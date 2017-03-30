@@ -5,7 +5,7 @@
 \title{prediction}
 \usage{
 \method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE, re.form,
-  allow.new.levels = FALSE, ptype = c("response", "selection", "prob"),
+  allow.new.levels = FALSE, type = c("response", "selection", "prob"),
   debug = FALSE, ...)
 }
 \arguments{
@@ -19,16 +19,15 @@
 
 \item{allow.new.levels}{(not yet implemented) allow previously unobserved levels in random-effects grouping variables?}
 
-\item{ptype}{return expected value ("response": pr/(pr+1-p)),
-the  predicted selection curve ("selection": r),
-or the relative fishing power of the test gear ("prob")?}
-
 \item{debug}{(logical) return the \code{TMBStruc} object that will be
 used internally for debugging?}
 
 \item{\dots}{unused - for method compatibility}
+
+\item{ptype}{return expected value ("response": pr/(pr+1-p)),
+the  predicted selection curve ("selection": r),
+or the relative fishing power of the test gear ("prob")?}
 }
 \description{
 prediction
 }
-

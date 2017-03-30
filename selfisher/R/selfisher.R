@@ -6,7 +6,7 @@
 ##' @param fr frame
 ##' @param yobs observed y
 ##' @param offset offset
-##' @param weights weights
+##' @param total total
 ##' @param link character
 ##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
 ##' @param pPredictCode relative fishing power code
@@ -17,7 +17,7 @@
 ##' @importFrom stats model.offset
 mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
-                       yobs, offset, weights,
+                       yobs, offset, total,
                        family, link_char, cc,
                        pPredictCode="selection",
                        doPredict=0,
@@ -57,8 +57,8 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   if (is.null(offset <- model.offset(fr)))
       offset <- rep(0,nobs)
 
-  if (is.null(weights <- fr[["(weights)"]]))
-    weights <- rep(1,nobs) #needed for predict function
+  if (is.null(total <- fr[["(total)"]]))
+    total <- rep(1,nobs) #needed for predict function
 
   Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
   if(length(Lindex)!=1) Lindex = -1 #flag for complex function => no L50 or SR
@@ -70,7 +70,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     Xd = dList$X,
     yobs,
     offset,
-    weights,
+    total,
     ## information about random effects structure
     termsr = rReStruc,
     termsp = pReStruc,
@@ -318,7 +318,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
 ##' @param x0 vector of initial values for the size selectivity model
 ##' @param data data frame
-##' @param weights The number of total fish caught in the test and control gear.
+##' @param total The number of total fish caught in the test and control gear.
 ##' @param offset offset
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
@@ -344,7 +344,7 @@ selfisher <- function (
     x0 = NULL,
     data = NULL,
     link = "logit",
-    weights=NULL,
+    total=NULL,
     offset=NULL,
     se=TRUE,
     verbose=FALSE,
@@ -380,7 +380,7 @@ selfisher <- function (
     if(link!="richards") dformula = ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "weights", "na.action", "offset"),
+    m <- match(c("data", "subset", "total", "na.action", "offset"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -398,7 +398,8 @@ selfisher <- function (
     ## model.frame.default looks for these objects in the environment
     ## of the *formula* (see 'extras', which is anything passed in ...),
     ## so they have to be put there ...
-    for (i in c("weights", "offset")) {
+ #   for (i in c("total", "offset")) {
+	  for (i in c("offset")) {
         if (!eval(bquote(missing(x=.(i)))))
             assign(i, get(i, parent.frame()), environment(combForm))
     }
@@ -412,10 +413,10 @@ selfisher <- function (
     ## store full, original formula & offset
     ## attr(fr,"formula") <- combForm  ## unnecessary?
     nobs <- nrow(fr)
-    weights <- as.vector(model.weights(fr))
+    total <- as.vector(model.total(fr))
 
-    if(is.null(weights)) {
-      stop("The total number of fish caught in the test and control gear must be specified using 'weights' argument.")
+    if(is.null(total)) {
+      stop("The total number of fish caught in the test and control gear must be specified using 'total' argument.")
     }
     
     ## sanity checks (skipped!)
@@ -435,7 +436,7 @@ selfisher <- function (
     TMBStruc <- eval.parent(
         mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
-                   yobs=y, offset, weights,
+                   yobs=y, offset, total,
                    family=familyStr, link_char=link, cc=cc, x0=x0))
 
     ## short-circuit
