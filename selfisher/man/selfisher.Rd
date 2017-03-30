@@ -5,7 +5,7 @@
 \title{Fit models with TMB}
 \usage{
 selfisher(rformula, pformula = ~0, dformula = ~1, data = NULL,
-  link = "logit", weights = NULL, offset = NULL, se = TRUE,
+  link = "logit", total = NULL, offset = NULL, se = TRUE,
   verbose = FALSE, debug = FALSE)
 }
 \arguments{
@@ -24,7 +24,7 @@ The relative fishing power model uses a logit link.}
 \item{link}{A character indicating the link function for the selectivity model. 
 \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).}
 
-\item{weights}{The number of total fish caught in the test and control gear.}
+\item{total}{The number of total fish caught in the test and control gear.}
 
 \item{offset}{offset}
 
@@ -43,4 +43,3 @@ Fit models with TMB
 \item in all cases \code{selfisher} returns maximum likelihood estimates - random effects variance-covariance matrices are not REML (so use \code{REML=FALSE} when comparing with \code{lme4::lmer}), and residual standard deviations (\code{\link{sigma}}) are not bias-corrected. Because the \code{\link{df.residual}} method for \code{selfisher} currently counts the dispersion parameter, one would need to multiply by \code{sqrt(nobs(fit)/(1+df.residual(fit)))} when comparing with \code{lm} ...
 }
 }
-

@@ -20,4 +20,3 @@ selfisher:::expandAllGrpVar(quote(1|f/g/h))
 selfisher:::expandAllGrpVar(quote(1|f*g))
 }
 \keyword{internal}
-

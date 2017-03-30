@@ -4,7 +4,7 @@
 \alias{mkTMBStruc}
 \title{Extract info from formulas, reTrms, etc., format for TMB}
 \usage{
-mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, offset, weights, family,
+mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, offset, total, family,
   link, pPredictCode = "selection", doPredict = 0,
   whichPredict = integer(0))
 }
@@ -23,7 +23,7 @@ mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, offset, weights, family,
 
 \item{offset}{offset}
 
-\item{weights}{weights}
+\item{total}{total}
 
 \item{link}{character}
 
@@ -37,4 +37,3 @@ mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, offset, weights, family,
 Extract info from formulas, reTrms, etc., format for TMB
 }
 \keyword{internal}
-

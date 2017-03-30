@@ -14,4 +14,3 @@ richardsdelta(object, ...)
 \description{
 Extract Richards exponent parameter
 }
-

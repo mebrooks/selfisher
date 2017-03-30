@@ -461,7 +461,7 @@ Type objective_function<Type>::operator() ()
   DATA_SPARSE_MATRIX(Zp);
   DATA_MATRIX(Xd);
   DATA_VECTOR(yobs);
-  DATA_VECTOR(weights);
+  DATA_VECTOR(total);
   DATA_VECTOR(offset);
 
   // Define covariance structure for the selectivity model
@@ -521,7 +521,7 @@ Type objective_function<Type>::operator() ()
   // Observation likelihood
   for (int i=0; i < yobs.size(); i++){
     if ( !selfisher::isNA(yobs(i)) ) {
-      jnll -= dbinom_robust(yobs(i) * weights(i), weights(i), logit_phi(i), true);
+      jnll -= dbinom_robust(yobs(i) * total(i), total(i), logit_phi(i), true);
     }
   }
 
