@@ -9,6 +9,7 @@
 ##' @param total total
 ##' @param link character
 ##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
+##' @param Lp controls calculation of length (L) at retention prob (p)
 ##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
 ##' @param whichPredict which observations in model frame represent predictions
@@ -18,7 +19,7 @@
 mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
                        yobs, offset, total,
-                       family, link_char, cc,
+                       family, link_char, cc, Lp,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0),
@@ -60,8 +61,15 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   if (is.null(total <- fr[["(total)"]]))
     total <- rep(1,nobs) #needed for predict function
 
+  #FLAGS
   Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
-  if(length(Lindex)!=1) Lindex = -1 #flag for complex function => no L50 or SR
+  Lp <- match.arg(Lp, c("basic", "none", "full"))
+  Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2)
+  if(length(Lindex)!=1) {
+	  Lindex = -1 #flag for complex function => no L50 or SR
+	  Lpflag = 0 #no Lp calculations
+	}
+	
   data.tmb <- namedList(
     Xr = rList$X,
     Zr = rList$Z,
@@ -78,6 +86,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
     Lindex = Lindex,
+    Lpflag = Lpflag,
     cc = as.numeric(cc),
     whichPredict = whichPredict
   )
@@ -320,6 +329,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
 ##' @param offset offset
+##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
 ##' @param debug whether to return the preprocessed data and parameter objects,
@@ -331,6 +341,9 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @details
 ##' \itemize{
 ##' \item in all cases \code{selfisher} returns maximum likelihood estimates - random effects variance-covariance matrices are not REML (so use \code{REML=FALSE} when comparing with \code{lme4::lmer}), and residual standard deviations (\code{\link{sigma}}) are not bias-corrected. Because the \code{\link{df.residual}} method for \code{selfisher} currently counts the dispersion parameter, one would need to multiply by \code{sqrt(nobs(fit)/(1+df.residual(fit)))} when comparing with \code{lm} ...
+##' \item Lp="basic" will return values for L50 and SR
+##' \item Lp="none" supresses calculation of L50 and SR to save time
+##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
 ##' }
 ##' @useDynLib selfisher
 ##' @importFrom stats update
@@ -346,6 +359,7 @@ selfisher <- function (
     link = "logit",
     total=NULL,
     offset=NULL,
+    Lp="basic",
     se=TRUE,
     verbose=FALSE,
     debug=FALSE
@@ -437,7 +451,7 @@ selfisher <- function (
         mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
                    yobs=y, offset, total,
-                   family=familyStr, link_char=link, cc=cc, x0=x0))
+                   family=familyStr, link_char=link, cc=cc, x0=x0, Lp=Lp))
 
     ## short-circuit
     if(debug) return(TMBStruc)

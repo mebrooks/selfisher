@@ -487,6 +487,7 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(pPredictCode);
   DATA_INTEGER(doPredict);
   DATA_INTEGER(Lindex);
+  DATA_INTEGER(Lpflag);
   DATA_INTEGER(cc);
   DATA_IVECTOR(whichPredict);
 
@@ -573,20 +574,37 @@ Type objective_function<Type>::operator() ()
   // method.
   if (doPredict) ADREPORT(mu_predict);
 
-  if(Lindex!=-1) {
-    vector<Type> L25(etar.size());
-    vector<Type> L50(etar.size());
-    vector<Type> L75(etar.size());
-    vector<Type> SR(etar.size());
-    for(int i=0; i<etar.size(); i++) {
-      L25(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.25), link);
-      L50(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.5), link);
-      L75(i) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), Type(0.75), link);
+  vector<Type> SR(etar.size());
+  vector<Type> retp(3); //retention probability
+	vector<int> SRcalcs(2); //store indecies of .25 and .75 in retp
+  switch(Lpflag){
+  case 0: //none
+    break;
+  case 1: //basic
+    retp(0)=Type(0.25);
+    retp(1)=Type(0.5);
+    retp(2)=Type(0.75);
+    SRcalcs(0)=0;
+    SRcalcs(1)=2;
+    break;
+  case 2: //full
+    error("full Lp not implemented yet");
+    //retp.resize
+    break;
+  default:
+    error("Invalid 'Lpflag'");
+  } 
+
+	matrix<Type> L(etar.size(), retp.size());
+  for(int i=0; i<etar.size(); i++) {
+    for(int j=0; j<retp.size(); j++) {
+      L(i,j) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), retp(j), link);
     }
-    SR = L75-L25;
-    ADREPORT(L25);
-    ADREPORT(L50);
-    ADREPORT(L75);
+  }
+  if(Lpflag!=0)
+  {
+    SR = L.col(SRcalcs(1))-L.col(SRcalcs(0));
+    ADREPORT(L);
     ADREPORT(SR);
   }
   return jnll;
