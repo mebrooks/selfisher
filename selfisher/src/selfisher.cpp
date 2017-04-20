@@ -538,7 +538,7 @@ Type objective_function<Type>::operator() ()
   }
   vector<matrix<Type> > corrp(termsp.size());
   vector<vector<Type> > sdp(termsp.size());
-  for(int i=0; i<termsp.size(); i++){
+  for(int i=0; i<termsp.size(); i++) {
     // NOTE: Dummy terms reported as empty
     if(termsp(i).blockNumTheta > 0){
       corrp(i) = termsp(i).corr;
@@ -552,7 +552,7 @@ Type objective_function<Type>::operator() ()
   REPORT(sdp);
   SIMULATE{ REPORT(yobs);}
   // For predict
-  switch(pPredictCode){
+  switch(pPredictCode) {
   case response_ppredictcode:
     r = invlogit(logit_phi); // Account for relative fishing power
     //r=phi;
@@ -577,7 +577,7 @@ Type objective_function<Type>::operator() ()
   vector<Type> SR(etar.size());
   vector<Type> retp(3); //retention probability
 	vector<int> SRcalcs(2); //store indecies of .25 and .75 in retp
-  switch(Lpflag){
+  switch(Lpflag) {
   case 0: //none
     break;
   case 1: //basic
@@ -588,8 +588,13 @@ Type objective_function<Type>::operator() ()
     SRcalcs(1)=2;
     break;
   case 2: //full
-    error("full Lp not implemented yet");
-    //retp.resize
+    //error("full Lp not implemented yet");
+    retp.resize(18);
+    retp << Type(0.05),Type(0.10),Type(0.15),Type(0.20),Type(0.25),Type(0.30),Type(0.35),Type(0.40),Type(0.45),Type(0.50),Type(0.55),Type(0.60),Type(0.65),Type(0.70),Type(0.75),Type(0.80),Type(0.85),Type(0.90),Type(0.95);
+//    retp(0)=Type(0.05);
+//    for(int i=1; i<90; i++) {
+//      retp(i)=retp(i-1)+Type(0.01);
+//    }
     break;
   default:
     error("Invalid 'Lpflag'");
@@ -601,11 +606,13 @@ Type objective_function<Type>::operator() ()
       L(i,j) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), retp(j), link);
     }
   }
-  if(Lpflag!=0)
-  {
+  if(Lpflag!=0) {
     SR = L.col(SRcalcs(1))-L.col(SRcalcs(0));
     ADREPORT(L);
     ADREPORT(SR);
+  }
+  if(Xp.cols()==1 & Zp.cols()==0) {
+    ADREPORT(p(0));
   }
   return jnll;
 }

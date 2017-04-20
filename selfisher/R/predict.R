@@ -88,6 +88,7 @@ predict.selfisher <- function(object,newdata=NULL,
                                family=omi$familyStr,
                                link=omi$link,
                                cc=omi$cc,
+                               Lp=omi$Lp,
                                pPredictCode=PredNm,
                                doPredict=as.integer(se.fit),
                                whichPredict=w))

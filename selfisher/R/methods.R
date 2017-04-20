@@ -316,7 +316,7 @@ cat.f <- function(...) cat(..., fill = TRUE)
     }
   }
   if(!identical(cc <- deparse(call$pformula),"~0"))
-    cat.f("Relative fishing power:  ",rep(' ',pass+2), cc, sep='')
+    cat.f("Relative fishing power formula:  ",rep(' ',pass+2), cc, sep='')
   if(!identical(cc <- deparse(call$dformula),"~1"))
     cat.f("Richards exponent:      ",rep(' ',pass+2), cc, sep='')
   if (!is.null(cc <- call$data))
@@ -427,15 +427,19 @@ residuals.selfisher <- function(object, type=c("response", "pearson", "deviance"
     switch(type,
            response=r,
            pearson={
-               if (is.null(v <- family(object)$variance))
-                   stop("variance function undefined for family ",
-                        sQuote(family(object)$family),"; cannot compute",
-                        " Pearson residuals")
-               vv <- switch(length(formals(v)),
-                            v(fitted(object)),
-                            v(fitted(object),delta(object)),
-                            stop("variance function should take 1 or 2 arguments"))
-               r/sqrt(vv)
+#               if (is.null(v <- family(object)$variance))
+#                   stop("variance function undefined for family ",
+#                        sQuote(family(object)$family),"; cannot compute",
+#                        " Pearson residuals")
+#               vv <- switch(length(formals(v)),
+#                            v(fitted(object)),
+#                            v(fitted(object),delta(object)),
+#                            stop("variance function should take 1 or 2 arguments"))
+#               r/sqrt(vv)
+               y <- model.response(object$frame)
+               yhat <- fitted(object)
+               n <- model.total(object$frame)
+               sqrt(n)*(y-yhat)/sqrt(yhat*(1-yhat))
            },
            deviance={
                y <- model.response(object$frame)

@@ -517,7 +517,8 @@ llikAIC <- function(object) {
     llik <- logLik(object)
     AICstats <- 
         c(AIC = AIC(llik), BIC = BIC(llik), logLik = c(llik),
-          deviance = -2*llik, ## FIXME:
+          deviance = sum((residuals(object,type="deviance"))^2),
+          Pearson.ChiSq=sum((residuals(object,type="pearson"))^2),
           df.resid = df.residual(object))
     list(logLik = llik, AICtab = AICstats)
 }
@@ -583,19 +584,16 @@ summary.selfisher <- function(object,...)
     ## FIXME: You can't count on object@re@flist,
     ##	      nor compute VarCorr() unless is(re, "reTrms"):
     varcor <- VarCorr(object)
-					# use S3 class for now
     structure(list(logLik = llAIC[["logLik"]],
                    family = famL, link = link,
-		   ngrps = ngrps(object),
+                   ngrps = ngrps(object),
                    nobs = nobs(object),
-		   coefficients = coefs, delta = sig,
-		   vcov = vcov(object),
-		   varcor = varcor, # and use formatVC(.) for printing.
-		   AICtab = llAIC[["AICtab"]], call = object$call
-                   ## residuals = residuals(object,"pearson",scaled = TRUE),
-		   ## fitMsgs = .merMod.msgs(object),
-                   ## optinfo = object@optinfo
-		   ), class = "summary.selfisher")
+                   coefficients = coefs, delta = sig,
+                   vcov = vcov(object),
+                   varcor = varcor, # and use formatVC(.) for printing.
+                   AICtab = llAIC[["AICtab"]], 
+                   call = object$call
+               ), class = "summary.selfisher")
                
 }
 
