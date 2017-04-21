@@ -76,12 +76,6 @@ namespace selfisher{
 
 }
 
-/* Quantile functions needed to simulate from truncated distributions */
-extern "C" {
-  double Rf_qnbinom(double p, double size, double prob, int lower_tail, int log_p);
-  double Rf_qpois(double p, double lambda, int lower_tail, int log_p);
-}
-
 enum valid_family {
   binomial_family = 100
 };
@@ -523,6 +517,7 @@ Type objective_function<Type>::operator() ()
   for (int i=0; i < yobs.size(); i++){
     if ( !selfisher::isNA(yobs(i)) ) {
       jnll -= dbinom_robust(yobs(i) * total(i), total(i), logit_phi(i), true);
+        SIMULATE{yobs(i) = rbinom(total(i), invlogit(logit_phi(i)));}
     }
   }
 
