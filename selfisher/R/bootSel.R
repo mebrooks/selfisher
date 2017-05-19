@@ -3,15 +3,31 @@
   paste0(toupper(substr(x, 1,1)), substr(x, 2, 1000000L), collapse=" ")
 }
 
+##' a function taking a fitted \code{selfisher} object as input and returning the
+##' L50 and SR estimates as a named numeric vector.
+##' @param x a fitted \code{selfisher} object
+L50SR = function(x) {
+	
+}
 
-##' Perform non-parametric bootstrap.
+##' Perform bootstrap.
 ##'
-bootSel <- function(x, FUN, nsim = 1, seed = NULL,
-					type=c("double", "parametric"),
-				    verbose = FALSE,
-                    .progress = "none", PBargs=list(),
-                    parallel = c("no", "multicore", "snow"),
-                    ncpus = getOption("boot.ncpus", 1L), cl = NULL)
+##' @param x a fitted \code{selfisher} object
+##' @param FUN a function taking a fitted 
+##' \code{selfisher} object as input and returning the
+##' \emph{statistic} of interest, which must be a (possibly named) numeric vector.
+##' @param nsim number of simulations, positive integer
+##' @param seed optional argument to \code{\link{set.seed}}
+##' @param type character string specifying the type of
+##' bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (e.g. Millar 1993),
+##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed.
+##' @details the default bootstrap type "double" is specific to fisheries literature.
+bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
+                   type=c("double", "parametric", "nonparameteric"),
+                   verbose = FALSE,
+                   .progress = "none", PBargs=list(),
+                   parallel = c("no", "multicore", "snow"),
+                   ncpus = getOption("boot.ncpus", 1L), cl = NULL)
 {
     stopifnot((nsim <- as.integer(nsim[1])) > 0)
     if (.progress!="none") { ## progress bar
@@ -26,8 +42,8 @@ bootSel <- function(x, FUN, nsim = 1, seed = NULL,
     if (do_parallel) {
         if (parallel == "multicore") have_mc <- .Platform$OS.type != "windows"
         else if (parallel == "snow") have_snow <- TRUE
-	if (!(have_mc || have_snow))
-	    do_parallel <- FALSE # (only for "windows")
+        if (!(have_mc || have_snow))
+        do_parallel <- FALSE # (only for "windows")
     }
     if (do_parallel && .progress != "none")
         message("progress bar disabled for parallel operations")
@@ -35,28 +51,50 @@ bootSel <- function(x, FUN, nsim = 1, seed = NULL,
     FUN <- match.fun(FUN)
     if(!is.null(seed)) set.seed(seed)
     else if(!exists(".Random.seed", envir = .GlobalEnv))
-	runif(1) # initialize the RNG if necessary
+        runif(1) # initialize the RNG if necessary
 
     mc <- match.call()
     t0 <- FUN(x)
     if (!is.numeric(t0))
-	stop("bootSel currently only handles functions that return numeric vectors")
+        stop("bootSel currently only handles functions that return numeric vectors")
 
-    mle <- list(beta = getME(x,"beta"), theta = getME(x,"theta"))
-    if (isLMM(x)) mle <- c(mle,list(sigma = sigma(x)))
-    ## FIXME: what about GLMMs with scale parameters??
-    ## FIXME: remove prefix when incorporated in package
+    mle <- x$obj$env$parList(x$fit$par, x$fit$parfull)
 
     if (type=="parametric") {
-        argList <- list(x, nsim=nsim)
-        ss <- do.call(simulate,argList)
+       argList <- list(x, nsim=nsim)
+       ss <- do.call(simulate,argList)
     } else {
-        if (type=="double")
-            ss <- replicate(nsim,,simplify=FALSE)
+        yobs <- x$frame[x$modelInfo$respCol]
+        if (type=="double") {
+           #resample hauls
+           hauls <- unique(x$frame[,"(haul)"])
+           if(length(hauls)<=1) stop("Double bootstrap is only useful for multiple hauls. Maybe you want 'nonparameteric'.")
+           splith <- split(x$frame, x$frame[,"(haul)"])
+           #create nsim new frames in ss
+           newhauls <- replicate(nsim, sample(hauls, length(hauls), replace=TRUE))
+
+           #within hauls, resample obs for each length class
+           newframe <- apply(newhauls, 2, function(x){ do.call(rbind, splith[x])})
+           ss <- lapply(newframe, function(z) {
+                   #overwrite the response variable
+                   z[,z$modelInfo$respCol] <- rbinom(length(z), z[,"(total)"], z[,z$modelInfo$respCol])/z[,"(total)"]
+                   return(z)
+                 })
         } else {
-            stop("")
-        }
-    }
+            if (type=="nonparameteric") {
+              
+              ss <- replicate(nsim, function() {
+                      z  <- x$frame
+                      #overwrite the response variable
+                      z[,z$modelInfo$respCol] <- rbinom(length(z), z[,"(total)"], z[,z$modelInfo$respCol])/z[,"(total)"]
+                      return(z)
+                    })
+
+            } else {
+            stop("unknown 'type' specified in call to bootSel")
+              }
+          }
+      }
 
     # define ffun as a closure containing the referenced variables
     # in its scope to avoid explicit clusterExport statement
