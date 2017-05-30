@@ -156,6 +156,41 @@ Type inverse_linkfun(Type eta, Type etad, int link) {
   return ans;
 }
 
+//template<class Type>
+//Type logit_phifun(Type etar, Type etad, Type etap, int link, int cover) {
+//  Type logit_phi;
+//  if(!cover) { //trowser-trawl
+//    Type p=invlogit(etap);
+//    if(link==logit_link) {
+//      logit_phi = log(p) + etar - log(1-p+exp(etar)-p*exp(etar)); 
+//    } else {
+//      Type r = inverse_linkfun(etar, etad, link);
+//      logit_phi = log(p) + log(r) - log(Type(1.0)-p);
+//    }
+//  } else { //cover=1 covered codend
+//    Type r = inverse_linkfun(etar, etad, link);
+//    logit_phi = log(r) - log(Type(1.0)-r);
+//  }
+//	return logit_phi;
+//}
+
+//template<class Type>
+//Type phifun(Type etar, Type etad, Type etap, int link, int cover) {
+//  Type phi;
+//  if(!cover) { //trowser-trawl
+//    Type p=invlogit(etap);
+//    if(link==logit_link) {
+//      phi = p*exp(etar) /(1-p+exp(etar)); 
+//    } else {
+//      Type r = inverse_linkfun(etar, etad, link);
+//      phi = invlogit(log(p) + log(r) - log(Type(1.0)-p));
+//    }
+//  } else { //cover=1 covered codend
+//      phi = inverse_linkfun(etar, etad, link);
+//  }
+//	return phi;
+//}
+
 /* logit transformed inverse_linkfun without losing too much
    accuracy */
 template<class Type>
@@ -313,7 +348,7 @@ Type termwise_nll(array<Type> &U, vector<Type> theta, per_term_info<Type>& term,
         U(0, j) = rnorm(Type(0), sd);
       }
       for(int i=1; i<n; i++){
-	ans -= dnorm(U(i, j), phi * U(i-1, j), sd * sqrt(1 - phi*phi), true);
+        ans -= dnorm(U(i, j), phi * U(i-1, j), sd * sqrt(1 - phi*phi), true);
         if (do_simulate) {
           U(i, j) = rnorm( phi * U(i-1, j), sd * sqrt(1 - phi*phi) );
         }
@@ -457,7 +492,8 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(yobs);
   DATA_VECTOR(total);
   DATA_VECTOR(offset);
-
+//  DATA_VECTOR(retp); //retention probability to predict corresponding L
+	
   // Define covariance structure for the selectivity model
   DATA_STRUCT(termsr, terms_t); //check this
 
@@ -480,9 +516,9 @@ Type objective_function<Type>::operator() ()
   // Flags
   DATA_INTEGER(pPredictCode);
   DATA_INTEGER(doPredict);
-  DATA_INTEGER(Lindex);
-  DATA_INTEGER(Lpflag);
-  DATA_INTEGER(cc);
+//  DATA_INTEGER(Lindex);
+//  DATA_INTEGER(Lpflag);
+  DATA_INTEGER(cover);
   DATA_IVECTOR(whichPredict);
 
   // Joint negative log-likelihood
@@ -503,21 +539,31 @@ Type objective_function<Type>::operator() ()
     r(i) = inverse_linkfun(etar(i), etad(i), link);
 
   // Calculate binomial probability parameter (phi)
+  //vector<Type> phi(r.size());
   vector<Type> logit_phi(r.size());
   vector<Type> p(etap.size());
-  if(!cc) { //trowser-trawl
+  if(!cover) { //trowser-trawl
     p = invlogit(etap);
-    //phi=p*r/(p*r+Type(1)-p) as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
+    //phi=p*r/(p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
     logit_phi = log(p) + log(r) - log(Type(1.0)-p);
-  } else { //cc=1 covered codend
+  } else { //cover=1 covered codend
     logit_phi = log(r) - log(Type(1.0)-r);
+    //phi=r;
   }
+
+//  //Calculate binomial probability parameter (phi)
+//  vector<Type> phi(yobs.size());
+//  for (int i = 0; i < yobs.size(); i++)
+//    phi(i) = phifun(etar(i), etad(i), etap(i), link, cover);
 
   // Observation likelihood
   for (int i=0; i < yobs.size(); i++){
     if ( !selfisher::isNA(yobs(i)) ) {
       jnll -= dbinom_robust(yobs(i) * total(i), total(i), logit_phi(i), true);
-        SIMULATE{yobs(i) = rbinom(total(i), invlogit(logit_phi(i)));}
+      SIMULATE{yobs(i) = rbinom(total(i), invlogit(logit_phi(i)));}
+      //jnll -= dbinom(yobs(i) * total(i), total(i), phi(i), true);
+      //SIMULATE{yobs(i) = rbinom(total(i), phi(i));}
+
     }
   }
 
@@ -546,17 +592,21 @@ Type objective_function<Type>::operator() ()
   REPORT(corrp);
   REPORT(sdp);
   SIMULATE{ REPORT(yobs);}
+
   // For predict
+  //vector<Type> r(etar.size());
+
   switch(pPredictCode) {
   case response_ppredictcode:
     r = invlogit(logit_phi); // Account for relative fishing power
     //r=phi;
     break;
   case selection_ppredictcode:
-    r = r; // Predict size selectivity
+    for (int i = 0; i < r.size(); i++)
+      r(i) = inverse_linkfun(etar(i), etad(i), link);
     break;
   case prob_ppredictcode:
-    r = p; // Predict relative fishing power
+    r = invlogit(etap); // Predict relative fishing power
     break;
   default:
     error("Invalid 'PredictCode'");
@@ -569,45 +619,59 @@ Type objective_function<Type>::operator() ()
   // method.
   if (doPredict) ADREPORT(mu_predict);
 
-  vector<Type> SR(etar.size());
-  vector<Type> retp(3); //retention probability
-	vector<int> SRcalcs(2); //store indecies of .25 and .75 in retp
-  switch(Lpflag) {
-  case 0: //none
-    break;
-  case 1: //basic
-    retp(0)=Type(0.25);
-    retp(1)=Type(0.5);
-    retp(2)=Type(0.75);
-    SRcalcs(0)=0;
-    SRcalcs(1)=2;
-    break;
-  case 2: //full
-    //error("full Lp not implemented yet");
-    retp.resize(18);
-    retp << Type(0.05),Type(0.10),Type(0.15),Type(0.20),Type(0.25),Type(0.30),Type(0.35),Type(0.40),Type(0.45),Type(0.50),Type(0.55),Type(0.60),Type(0.65),Type(0.70),Type(0.75),Type(0.80),Type(0.85),Type(0.90),Type(0.95);
-//    retp(0)=Type(0.05);
-//    for(int i=1; i<90; i++) {
-//      retp(i)=retp(i-1)+Type(0.01);
-//    }
-    break;
-  default:
-    error("Invalid 'Lpflag'");
-  } 
-
-	matrix<Type> L(etar.size(), retp.size());
-  for(int i=0; i<etar.size(); i++) {
-    for(int j=0; j<retp.size(); j++) {
-      L(i,j) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), retp(j), link);
+  if(Lpflag!=0 & Xr.cols()==2 & Zr.cols()==0 & Xd.cols()<2) { //very simple model only (for now)
+    vector<Type> retp(3); //retention probability
+    vector<int> SRcalcs(2); //store indecies of .25 and .75 in retp
+    switch(Lpflag) {
+    case 0: //none
+      break;
+    case 1: //basic
+      retp(0)=Type(0.25);
+      retp(1)=Type(0.5);
+      retp(2)=Type(0.75);
+      SRcalcs(0)=0;
+      SRcalcs(1)=2;
+      break;
+    case 2: //full
+      retp.resize(19);
+      retp << Type(0.05),Type(0.10),Type(0.15),Type(0.20),Type(0.25),Type(0.30),Type(0.35),Type(0.40),Type(0.45),Type(0.50),Type(0.55),Type(0.60),Type(0.65),Type(0.70),Type(0.75),Type(0.80),Type(0.85),Type(0.90),Type(0.95);
+      SRcalcs(0)=4;
+      SRcalcs(1)=14;
+      break;
+    default:
+      error("Invalid 'Lpflag'");
+    } 
+    vector<Type> Lp(retp.size());
+    for(int i=0; i<retp.size(); i++) {
+      Lp(i) = (linkfun(retp(i), etad(0), link) - betar(0))/betar(1);
     }
-  }
-  if(Lpflag!=0) {
-    SR = L.col(SRcalcs(1))-L.col(SRcalcs(0));
-    ADREPORT(L);
+	  Type SR = Lp(SRcalcs(1))-Lp(SRcalcs(0));
+    ADREPORT(Lp);
     ADREPORT(SR);
+	}
+
+/* TODO section calculates an L and SR for each observation.
+This will be useful for letting L50 and SR depend on covariates.
+It requires postprocessing...
+			(1) match back to predictor columns of origianl data
+			(2) summarize somehow accounting for sources of uncertainty
+
+  if(Lpflag!=0) {
+    matrix<Type> L(etar.size(), retp.size());
+    for(int i=0; i<etar.size(); i++) {
+      for(int j=0; j<retp.size(); j++) {
+        L(i,j) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), retp(j), link);
+      }
+    }
+      SR = L.col(SRcalcs(1))-L.col(SRcalcs(0));
+      ADREPORT(L);
+      ADREPORT(SR);
   }
+*/
+
   if(Xp.cols()==1 & Zp.cols()==0) {
-    ADREPORT(p(0));
+		Type p = invlogit(etap)(0);
+    ADREPORT(p);
   }
   return jnll;
 }

@@ -148,7 +148,9 @@ print.ranef.selfisher <- function(x, simplify=TRUE, ...) {
 ##' @method getME selfisher
 ##' @export
 getME.selfisher <- function(object,
-                          name = c("Xr", "Xp","Zr", "Zp", "Xd", "theta"),
+                          name = c("Xr", "Xp","Zr", "Zp", "Xd", 
+                                   "betar", "betap", "betad",
+                                   "br", "bp", "thetar", "thetap"),
                           ...)
 {
   if(missing(name)) stop("'name' must not be missing")
@@ -172,7 +174,13 @@ getME.selfisher <- function(object,
          "Zr"    = oo.env$data$Zr,
          "Zp"    = oo.env$data$Zp,
          "Xd"    = oo.env$data$Xd,
-         "theta" = oo.env$parList()$theta ,
+         "betar" = oo.env$parList(object$fit$par, object$fit$parfull)$betar,
+         "betap" = oo.env$parList(object$fit$par, object$fit$parfull)$betap,
+         "betad" = oo.env$parList(object$fit$par, object$fit$parfull)$betad,
+         "br" = oo.env$parList(object$fit$par, object$fit$parfull)$br,
+         "bp" = oo.env$parList(object$fit$par, object$fit$parfull)$bp,
+         "thetar" = oo.env$parList(object$fit$par, object$fit$parfull)$thetar,
+         "thetap" = oo.env$parList(object$fit$par, object$fit$parfull)$thetap,
 
          "..foo.." = # placeholder!
            stop(gettextf("'%s' is not implemented yet",
@@ -315,7 +323,7 @@ cat.f <- function(...) cat(..., fill = TRUE)
         pass<-nchar(deparse(rhs))
     }
   }
-  if(!identical(cc <- deparse(call$pformula),"~0"))
+  if(!identical(cc <- deparse(call$pformula),"~0") & !call$cover)
     cat.f("Relative fishing power formula:  ",rep(' ',pass+2), cc, sep='')
   if(!identical(cc <- deparse(call$dformula),"~1"))
     cat.f("Richards exponent:      ",rep(' ',pass+2), cc, sep='')

@@ -8,7 +8,7 @@
 ##' @param offset offset
 ##' @param total total
 ##' @param link character
-##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
+##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
 ##' @param Lp controls calculation of length (L) at retention prob (p)
 ##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
@@ -19,7 +19,7 @@
 mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
                        yobs, offset, total,
-                       family, link_char, cc, Lp,
+                       family, link_char, cover, Lp,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0),
@@ -33,8 +33,8 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     betap_init <- 0 #logit(.5) #p always has logit link
     mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
   }
-  if(cc) {
-  	pformula[] <- ~0 #no p in cc models
+  if(cover) {
+    pformula[] <- ~0 #no p in cover models
   }
 
   ## n.b. eval.parent() chain needs to be preserved because
@@ -62,13 +62,15 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     total <- rep(1,nobs) #needed for predict function
 
   #FLAGS
-  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
+  #FIXME: might be 'width' instead of 'length'
+        #does it ever need to output L50 for 2 or more types?
+#  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
   Lp <- match.arg(Lp, c("basic", "none", "full"))
   Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2)
-  if(length(Lindex)!=1) {
-	  Lindex = -1 #flag for complex function => no L50 or SR
-	  Lpflag = 0 #no Lp calculations
-	}
+#  if(length(Lindex)!=1) {
+#	  Lindex = -1 #flag for complex function => no L50 or SR
+#	  Lpflag = 0 #no Lp calculations
+#	}
 	
   data.tmb <- namedList(
     Xr = rList$X,
@@ -85,9 +87,9 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     link = .valid_link[link_char],
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
-    Lindex = Lindex,
+#    Lindex = Lindex,
     Lpflag = Lpflag,
-    cc = as.numeric(cc),
+    cover = as.numeric(cover),
     whichPredict = whichPredict
   )
   getVal <- function(obj, component)
@@ -314,7 +316,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
   c(xrt$reTrms[whichReTrms],setNames(xrt[which],which))
 }
 
-##' Fit models with TMB
+##' Fit gear selectivity models with TMB
 ##' @param rformula combined fixed and random effects formula for the selectivity model, following lme4
 ##'     syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.
 ##' @param pformula a \emph{one-sided} (i.e., no response variable) formula for
@@ -324,10 +326,11 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param link A character indicating the link function for the selectivity model. 
 ##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
-##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
+##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
 ##' @param x0 vector of initial values for the size selectivity model
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
+##' @param haul Name of column representing different hauls. Needed for double bootstrap. 
 ##' @param offset offset
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
@@ -340,9 +343,10 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @importFrom TMB MakeADFun sdreport
 ##' @details
 ##' \itemize{
-##' \item in all cases \code{selfisher} returns maximum likelihood estimates - random effects variance-covariance matrices are not REML (so use \code{REML=FALSE} when comparing with \code{lme4::lmer}), and residual standard deviations (\code{\link{sigma}}) are not bias-corrected. Because the \code{\link{df.residual}} method for \code{selfisher} currently counts the dispersion parameter, one would need to multiply by \code{sqrt(nobs(fit)/(1+df.residual(fit)))} when comparing with \code{lm} ...
-##' \item Lp="basic" will return values for L50 and SR
-##' \item Lp="none" supresses calculation of L50 and SR to save time
+##' \item in all cases \code{selfisher} returns maximum likelihood estimates.
+##' \item You only need to specify \code{haul} in models that are going to be bootstraped with type="double".
+##' \item Lp="basic" will return values for L50 and SR.
+##' \item Lp="none" supresses calculation of L50 and SR to save time.
 ##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
 ##' }
 ##' @useDynLib selfisher
@@ -353,11 +357,12 @@ selfisher <- function (
     rformula,
     pformula = ~1,
     dformula = ~1,
-    cc = FALSE,
+    cover = FALSE,
     x0 = NULL,
     data = NULL,
     link = "logit",
     total=NULL,
+    haul=NULL,
     offset=NULL,
     Lp="basic",
     se=TRUE,
@@ -391,10 +396,12 @@ selfisher <- function (
     environment(dformula) <- environment(rformula)
     call$dformula <- dformula
 
+    call$cover <- cover
+
     if(link!="richards") dformula = ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "na.action", "offset"),
+    m <- match(c("data", "subset", "total", "haul", "na.action", "offset"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -451,7 +458,7 @@ selfisher <- function (
         mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
                    yobs=y, offset, total,
-                   family=familyStr, link_char=link, cc=cc, x0=x0, Lp=Lp))
+                   family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp))
 
     ## short-circuit
     if(debug) return(TMBStruc)
@@ -466,7 +473,11 @@ selfisher <- function (
                      DLL = "selfisher"))
 
     optTime <- system.time(fit <- with(obj, nlminb(start=par, objective=fn,
-                                                   gradient=gr)))
+                                                   gradient=gr, 
+                                                   control=list(iter.max=300))))
+
+#    optTime <- system.time(fit <- with(obj, optim(par=par, fn=fn, gradient=gr,
+#                                                   method="BFGS")))
 
     fit$parfull <- obj$env$last.par.best ## This is in sync with fit$par
 
@@ -494,7 +505,7 @@ selfisher <- function (
     }
 
     modelInfo <- with(TMBStruc,
-                      namedList(nobs, respCol, grpVar, familyStr, family, link, cc,
+                      namedList(nobs, respCol, grpVar, familyStr, family, link, cover,
                                 ## FIXME:apply condList -> cond earlier?
                                 reTrms = lapply(list(r=rList, p=pList),
                                                 stripReTrms),
