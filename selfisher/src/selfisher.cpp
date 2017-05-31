@@ -517,7 +517,7 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(pPredictCode);
   DATA_INTEGER(doPredict);
 //  DATA_INTEGER(Lindex);
-//  DATA_INTEGER(Lpflag);
+  DATA_INTEGER(Lpflag);
   DATA_INTEGER(cover);
   DATA_IVECTOR(whichPredict);
 
@@ -647,12 +647,13 @@ Type objective_function<Type>::operator() ()
     }
 	  Type SR = Lp(SRcalcs(1))-Lp(SRcalcs(0));
     ADREPORT(Lp);
+    REPORT(retp);
     ADREPORT(SR);
 	}
 
-/* TODO section calculates an L and SR for each observation.
-This will be useful for letting L50 and SR depend on covariates.
-It requires postprocessing...
+/* TODO This section calculates an L and SR for each observation.
+This will be useful for letting L50 and SR depend on covariates,
+but it requires postprocessing...
 			(1) match back to predictor columns of origianl data
 			(2) summarize somehow accounting for sources of uncertainty
 

@@ -341,6 +341,14 @@ cat.f <- function(...) cat(..., fill = TRUE)
 #    cat.f(" Subset:", deparse(cc))
 }
 
+.prt.retention <- function(ret, SR) {
+	if (!is.null(ret)){
+		cat("\nSize at retention probability:\n")
+		print(ret, rownames=FALSE)
+		cat("\nSelectivity range (SR):\n")
+		print(SR)
+	}
+}
 
 ### FIXME: attempted refactoring ...
 cat.f2 <- function(call,component,label,lwid,fwid=NULL,cind=NULL) {

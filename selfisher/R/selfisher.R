@@ -575,7 +575,6 @@ summary.selfisher <- function(object,...)
                            deparse.level = 0)
             ## statType <- if (useSc) "t" else "z"
             statType <- "z"
-            ## ??? should we provide Wald p-values???
             coefs <- cbind(coefs, 2*pnorm(abs(cf3), lower.tail = FALSE))
             colnames(coefs)[3:4] <- c(paste(statType, "value"),
                                       paste0("Pr(>|",statType,"|)"))
@@ -595,12 +594,24 @@ summary.selfisher <- function(object,...)
     ## FIXME: You can't count on object@re@flist,
     ##	      nor compute VarCorr() unless is(re, "reTrms"):
     varcor <- VarCorr(object)
+    #If the model is simple, extract Lp and SR
+    if(all(names(object$fit$par)=="betar")) {
+      SR <- summary(object$sdr, "report")["SR",]
+      retention <- data.frame(p=object$obj$report()$retp, 
+            Lp.Est=summary(object$sdr, "report")[1:length(object$obj$report()$retp),1], 
+            Lp.Std.Err=summary(object$sdr, "report")[1:length(object$obj$report()$retp),2])
+    } else {
+      SR <- NULL
+      retention <- NULL
+    }
     structure(list(logLik = llAIC[["logLik"]],
                    family = famL, link = link,
                    ngrps = ngrps(object),
                    nobs = nobs(object),
                    coefficients = coefs, delta = sig,
                    vcov = vcov(object),
+                   SR = SR,
+                   retention = retention,
                    varcor = varcor, # and use formatVC(.) for printing.
                    AICtab = llAIC[["AICtab"]], 
                    call = object$call
@@ -649,6 +660,7 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
                          digits = digits, signif.stars = signif.stars)
         } ## if (p>0)
     }
+    .prt.retention(x$retention, x$SR)
 
     invisible(x)
 }## print.summary.selfisher

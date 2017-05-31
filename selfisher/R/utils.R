@@ -408,7 +408,7 @@ drop.special2 <- function(x, value=quote(offset), preserve = NULL) {
   update(proc(x), substitute(. ~ . - x,list(x=value)))
 }
 
-## renaming weights to total so need replacement for stats::model.weights
+## renamed weights to total so need replacement for stats::model.weights
 model.total <- function (x) {
   x$"(total)"
 }
