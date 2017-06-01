@@ -6,7 +6,18 @@
 ##' a function taking a fitted \code{selfisher} object as input and returning the
 ##' L50 and SR estimates as a named numeric vector.
 ##' @param x a fitted \code{selfisher} object
-L50SR = function(x) {
+##' @export
+L50SR <- function(x) {
+	L50 <- summary(x$sdr, "report")[which(x$obj$report()$retp==0.5),1]
+	SR <- summary(x$sdr, "report")["SR",1]
+	return(c("L50"=L50,"SR"=SR)) 
+}
+
+##' a function that refits the same model to a new data set
+##' @param x a fitted \code{selfisher} object
+##' @param newdata
+##' @export
+refit.selfisher <- funciton(x, newdata) {
 	
 }
 
@@ -22,6 +33,8 @@ L50SR = function(x) {
 ##' bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (e.g. Millar 1993),
 ##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed.
 ##' @details the default bootstrap type "double" is specific to fisheries literature.
+##' @export
+##' @importFrom lme4 refit
 bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
                    type=c("double", "parametric", "nonparameteric"),
                    verbose = FALSE,
@@ -60,11 +73,12 @@ bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
 
     mle <- x$obj$env$parList(x$fit$par, x$fit$parfull)
 
+    type <- match.arg(type)
     if (type=="parametric") {
        argList <- list(x, nsim=nsim)
        ss <- do.call(simulate,argList)
     } else {
-        yobs <- x$frame[x$modelInfo$respCol]
+        yobs <- x$frame[,x$modelInfo$respCol]
         if (type=="double") {
            #resample hauls
            hauls <- unique(x$frame[,"(haul)"])
@@ -74,10 +88,10 @@ bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
            newhauls <- replicate(nsim, sample(hauls, length(hauls), replace=TRUE))
 
            #within hauls, resample obs for each length class
-           newframe <- apply(newhauls, 2, function(x){ do.call(rbind, splith[x])})
+           newframe <- apply(newhauls, 2, function(i){ do.call(rbind, splith[i])})
            ss <- lapply(newframe, function(z) {
                    #overwrite the response variable
-                   z[,z$modelInfo$respCol] <- rbinom(length(z), z[,"(total)"], z[,z$modelInfo$respCol])/z[,"(total)"]
+                   z[,x$modelInfo$respCol] <- rbinom(nrow(z), size=z[,"(total)"], prob=z[,x$modelInfo$respCol])/z[,"(total)"]
                    return(z)
                  })
         } else {
@@ -148,7 +162,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
     ##		      statistic = statistic, sim = sim, call = call,
     ##		      ran.gen = ran.gen, mle = mle),
     ##		 class = "boot")
-    s <- structure(list(t0 = t0, t = t(t.star), R = nsim, data = x@frame,
+    s <- structure(list(t0 = t0, t = t(t.star), R = nsim, data = x$frame,
 		   seed = .Random.seed,
 		   statistic = FUN, call = mc,
 		   ## these two are dummies
