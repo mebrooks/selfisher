@@ -13,15 +13,15 @@ L50SR <- function(x) {
 	return(c("L50"=L50,"SR"=SR)) 
 }
 
-##' a function that refits the same model to a new data set
-##' @param x a fitted \code{selfisher} object
-##' @param newdata
-##' @export
-refit.selfisher <- funciton(x, newdata) {
-	
-}
+#' a function that refits the same model to a new data set
+#' @param x a fitted \code{selfisher} object
+#' @param newdata
+#' @export
+#refit.selfisher <- funciton(x, newdata) {
+#	
+#}
 
-##' Perform bootstrap.
+#' Perform bootstrap.
 ##'
 ##' @param x a fitted \code{selfisher} object
 ##' @param FUN a function taking a fitted 
