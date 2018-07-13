@@ -37,13 +37,10 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     pformula[] <- ~0 #no p in cover models
   }
 
-  ## n.b. eval.parent() chain needs to be preserved because
-  ## we are going to try to eval(mf) at the next level down,
-  ## need to be able to find data etc.
-  rList  <- eval.parent(getXReTrms(rformula, mf, fr))
-  pList  <- eval.parent(getXReTrms(pformula, mf, fr))
-  dList  <- eval.parent(getXReTrms(dformula, mf, fr,
-                                        ranOK=FALSE, "dispersion"))
+  rList  <- getXReTrms(rformula, mf, fr)
+  pList  <- getXReTrms(pformula, mf, fr)
+  dList  <- getXReTrms(dformula, mf, fr,
+                                  ranOK=FALSE, "dispersion")
 
   rReStruc <- with(rList, getReStruc(reTrms, ss))
   pReStruc <- with(pList, getReStruc(reTrms, ss))
@@ -157,7 +154,7 @@ getXReTrms <- function(formula, mf, fr, ranOK=TRUE, type="") {
     } else {
         mf$formula <- fixedform
 
-        terms_fixed <- terms(eval.parent(mf))
+        terms_fixed <- terms(eval(mf,envir=environment(fixedform)))
 
         ## FIXME: make model matrix sparse?? i.e. Matrix:::sparse.model.matrix()
         X <- model.matrix(fixedform, fr, contrasts)
@@ -455,12 +452,11 @@ selfisher <- function (
     ## (name *must* be 'y' to match guts of family()$initialize
     y <- fr[,respCol]
 
-    ## eval.parent() necessary because we will try to eval(mf) down below
-    TMBStruc <- eval.parent(
+    TMBStruc <-
         mkTMBStruc(rformula, pformula, dformula,
                    mf, fr,
                    yobs=y, offset, total,
-                   family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp))
+                   family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp)
 
     ## short-circuit
     if(debug) return(TMBStruc)
