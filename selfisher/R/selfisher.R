@@ -48,8 +48,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 
   nobs <- nrow(fr)
 
-  if (is.null(total <- fr[["(total)"]]))
-    total <- rep(1,nobs) #needed for predict function
+  if (is.null(total)) total <- rep(1,nobs)
 
   #FLAGS
   #FIXME: might be 'width' instead of 'length'
