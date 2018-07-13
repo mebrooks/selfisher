@@ -587,7 +587,7 @@ summary.selfisher <- function(object,...)
     ff <- fixef(object)
     vv <- vcov(object)
     coefs <- setNames(lapply(names(ff),
-            function(nm) if (trivialFixef(names(ff[[nm]]),nm)) NULL else
+            function(nm) if (trivialFixef(names(ff[[nm]]),nm) | is.null(vv[[nm]])) NULL else
                              mkCoeftab(ff[[nm]],vv[[nm]])),
                       names(ff))
 
