@@ -5,7 +5,6 @@
 ##' @param mf call to model frame
 ##' @param fr frame
 ##' @param yobs observed y
-##' @param offset offset
 ##' @param total total
 ##' @param link character
 ##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
@@ -18,7 +17,7 @@
 ##' @importFrom stats model.offset
 mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
-                       yobs, offset, total,
+                       yobs, total,
                        family, link_char, cover, Lp,
                        pPredictCode="selection",
                        doPredict=0,
@@ -48,12 +47,6 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   grpVar <- with(rList, getGrpVar(reTrms$flist))
 
   nobs <- nrow(fr)
-  ## FIXME: deal with offset in formula
-  ##if (grepl("offset", safeDeparse(formula)))
-  ##  stop("Offsets within formulas not implemented. Use argument.")
-
-  if (is.null(offset <- model.offset(fr)))
-      offset <- rep(0,nobs)
 
   if (is.null(total <- fr[["(total)"]]))
     total <- rep(1,nobs) #needed for predict function
@@ -76,7 +69,6 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     Zp = pList$Z,
     Xd = dList$X,
     yobs,
-    offset,
     total,
     ## information about random effects structure
     termsr = rReStruc,
@@ -328,7 +320,6 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
 ##' @param haul Name of column representing different hauls. Needed for double bootstrap.
-##' @param offset offset
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
@@ -361,7 +352,6 @@ selfisher <- function (
     link = "logit",
     total=NULL,
     haul=NULL,
-    offset=NULL,
     Lp="basic",
     se=TRUE,
     verbose=FALSE,
@@ -397,10 +387,10 @@ selfisher <- function (
 
     call$cover <- cover
 
-    if(link!="richards") dformula = ~0
+    if(link!="richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "haul", "na.action", "offset"),
+    m <- match(c("data", "subset", "total", "haul", "na.action"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -418,11 +408,10 @@ selfisher <- function (
     ## model.frame.default looks for these objects in the environment
     ## of the *formula* (see 'extras', which is anything passed in ...),
     ## so they have to be put there ...
- #   for (i in c("total", "offset")) {
-	  for (i in c("offset")) {
-        if (!eval(bquote(missing(x=.(i)))))
-            assign(i, get(i, parent.frame()), environment(combForm))
-    }
+#    for (i in c("total", "offset")) {
+#        if (!eval(bquote(missing(x=.(i)))))
+#            assign(i, get(i, parent.frame()), environment(combForm))
+#    }
 
     mf$formula <- combForm
     fr <- eval(mf,envir=environment(formula),enclos=parent.frame())
@@ -430,7 +419,7 @@ selfisher <- function (
     ## FIXME: throw an error *or* convert character to factor
     ## convert character vectors to factor (defensive)
     ## fr <- factorize(fr.form, fr, char.only = TRUE)
-    ## store full, original formula & offset
+    ## store full, original formula
     ## attr(fr,"formula") <- combForm  ## unnecessary?
     nobs <- nrow(fr)
     total <- as.vector(model.total(fr))
@@ -453,9 +442,9 @@ selfisher <- function (
     y <- fr[,respCol]
 
     TMBStruc <-
-        mkTMBStruc(rformula, pformula, dformula,
-                   mf, fr,
-                   yobs=y, offset, total,
+        mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,
+                   mf=mf, fr=fr,
+                   yobs=y, total=total,
                    family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp)
 
     ## short-circuit
