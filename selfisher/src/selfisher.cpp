@@ -162,7 +162,7 @@ Type inverse_linkfun(Type eta, Type etad, int link) {
 //  if(!cover) { //trowser-trawl
 //    Type p=invlogit(etap);
 //    if(link==logit_link) {
-//      logit_phi = log(p) + etar - log(1-p+exp(etar)-p*exp(etar)); 
+//      logit_phi = log(p) + etar - log(1-p+exp(etar)-p*exp(etar));
 //    } else {
 //      Type r = inverse_linkfun(etar, etad, link);
 //      logit_phi = log(p) + log(r) - log(Type(1.0)-p);
@@ -180,7 +180,7 @@ Type inverse_linkfun(Type eta, Type etad, int link) {
 //  if(!cover) { //trowser-trawl
 //    Type p=invlogit(etap);
 //    if(link==logit_link) {
-//      phi = p*exp(etar) /(1-p+exp(etar)); 
+//      phi = p*exp(etar) /(1-p+exp(etar));
 //    } else {
 //      Type r = inverse_linkfun(etar, etad, link);
 //      phi = invlogit(log(p) + log(r) - log(Type(1.0)-p));
@@ -216,7 +216,7 @@ template <class Type>
 struct per_term_info {
   // Input from R
   int blockCode;     // Code that defines structure
-  int blockSize;     // Size of one block 
+  int blockSize;     // Size of one block
   int blockReps;     // Repeat block number of times
   int blockNumTheta; // Parameter count per block
   matrix<Type> dist;
@@ -235,7 +235,7 @@ struct terms_t : vector<per_term_info<Type> > {
       int blockCode = (int) REAL(getListElement(y, "blockCode", &isNumericScalar))[0];
       int blockSize = (int) REAL(getListElement(y, "blockSize", &isNumericScalar))[0];
       int blockReps = (int) REAL(getListElement(y, "blockReps", &isNumericScalar))[0];
-      int blockNumTheta = (int) REAL(getListElement(y, "blockNumTheta", &isNumericScalar))[0];      
+      int blockNumTheta = (int) REAL(getListElement(y, "blockNumTheta", &isNumericScalar))[0];
       (*this)(i).blockCode = blockCode;
       (*this)(i).blockSize = blockSize;
       (*this)(i).blockReps = blockReps;
@@ -457,17 +457,16 @@ Type allterms_nll(vector<Type> &u, vector<Type> theta,
   Type ans = 0;
   int upointer = 0;
   int tpointer = 0;
-  int nr, np = 0, offset;
+  int nr, np = 0;
   for(int i=0; i < terms.size(); i++){
     nr = terms(i).blockSize * terms(i).blockReps;
     // Note: 'blockNumTheta=0' ==> Same parameters as previous term.
     bool emptyTheta = ( terms(i).blockNumTheta == 0 );
-    offset = ( emptyTheta ? -np : 0 );
     np     = ( emptyTheta ?  np : terms(i).blockNumTheta );
     vector<int> dim(2);
     dim << terms(i).blockSize, terms(i).blockReps;
     array<Type> useg( &u(upointer), dim);
-    vector<Type> tseg = theta.segment(tpointer + offset, np);
+    vector<Type> tseg = theta.segment(tpointer, np);
     ans += termwise_nll(useg, tseg, terms(i), do_simulate);
     upointer += nr;
     tpointer += terms(i).blockNumTheta;
@@ -491,9 +490,8 @@ Type objective_function<Type>::operator() ()
   DATA_MATRIX(Xd);
   DATA_VECTOR(yobs);
   DATA_VECTOR(total);
-  DATA_VECTOR(offset);
 //  DATA_VECTOR(retp); //retention probability to predict corresponding L
-	
+
   // Define covariance structure for the selectivity model
   DATA_STRUCT(termsr, terms_t); //check this
 
@@ -529,7 +527,7 @@ Type objective_function<Type>::operator() ()
   jnll += allterms_nll(bp, thetap, termsp, this->do_simulate);
 
   // Linear predictor
-  vector<Type> etar = Xr * betar + Zr * br + offset;
+  vector<Type> etar = Xr * betar + Zr * br;
   vector<Type> etap = Xp * betap + Zp * bp;
   vector<Type> etad = Xd * betad;
 
@@ -640,7 +638,7 @@ Type objective_function<Type>::operator() ()
       break;
     default:
       error("Invalid 'Lpflag'");
-    } 
+    }
     vector<Type> Lp(retp.size());
     for(int i=0; i<retp.size(); i++) {
       Lp(i) = (linkfun(retp(i), etad(0), link) - betar(0))/betar(1);
