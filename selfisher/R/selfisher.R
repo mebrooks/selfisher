@@ -25,6 +25,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                        x0=NULL) {
 
   mapArg <- NULL
+  pformula.orig <- pformula ## Restore when done
 
   ## p=0.5 for equal fishing power in test and control codend
   if(pformula == ~0) {
@@ -100,6 +101,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                     ))
   randomArg <- c(if(ncol(data.tmb$Zr) > 0) "br",
                  if(ncol(data.tmb$Zp) > 0) "bp")
+  pformula <- pformula.orig ## May have changed - restore
   namedList(data.tmb, parameters, mapArg, randomArg, grpVar,
             rList, pList, dList, rReStruc, pReStruc)
 }
