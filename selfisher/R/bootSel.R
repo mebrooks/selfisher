@@ -1,4 +1,4 @@
-### Copied from bootMer() 
+### Copied from bootMer()
 .simpleCap <- function(x) {
   paste0(toupper(substr(x, 1,1)), substr(x, 2, 1000000L), collapse=" ")
 }
@@ -10,21 +10,12 @@
 L50SR <- function(x) {
 	L50 <- summary(x$sdr, "report")[which(x$obj$report()$retp==0.5),1]
 	SR <- summary(x$sdr, "report")["SR",1]
-	return(c("L50"=L50,"SR"=SR)) 
+	return(c("L50"=L50,"SR"=SR))
 }
 
-#' a function that refits the same model to a new data set
-#' @param x a fitted \code{selfisher} object
-#' @param newdata
-#' @export
-#refit.selfisher <- funciton(x, newdata) {
-#	
-#}
-
-#' Perform bootstrap.
-##'
+##' Perform bootstrap
 ##' @param x a fitted \code{selfisher} object
-##' @param FUN a function taking a fitted 
+##' @param FUN a function taking a fitted
 ##' \code{selfisher} object as input and returning the
 ##' \emph{statistic} of interest, which must be a (possibly named) numeric vector.
 ##' @param nsim number of simulations, positive integer
@@ -34,8 +25,7 @@ L50SR <- function(x) {
 ##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed.
 ##' @details the default bootstrap type "double" is specific to fisheries literature.
 ##' @export
-##' @importFrom lme4 refit
-bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
+bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
                    type=c("double", "parametric", "nonparameteric"),
                    verbose = FALSE,
                    .progress = "none", PBargs=list(),
@@ -74,33 +64,48 @@ bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
     mle <- x$obj$env$parList(x$fit$par, x$fit$parfull)
 
     type <- match.arg(type)
+    cc <- getCall(x)
+
     if (type=="parametric") {
        argList <- list(x, nsim=nsim)
-       ss <- do.call(simulate,argList)
+       y <- do.call(simulate,argList)
+       ss <- lapply(y, function(y) {
+           z <- eval(cc$data)
+           z[,x$modelInfo$respCol] <- y
+           return(z)
+       })
     } else {
-        yobs <- x$frame[,x$modelInfo$respCol]
+       cc <- getCall(x)
+        olddata <- eval(cc$data)
         if (type=="double") {
            #resample hauls
            hauls <- unique(x$frame[,"(haul)"])
            if(length(hauls)<=1) stop("Double bootstrap is only useful for multiple hauls. Maybe you want 'nonparameteric'.")
-           splith <- split(x$frame, x$frame[,"(haul)"])
-           #create nsim new frames in ss
-           newhauls <- replicate(nsim, sample(hauls, length(hauls), replace=TRUE))
+
+           #split the old data by haul
+           oldhaul <- olddata[,as.character(cc$haul)]
+           splith <- split(olddata, oldhaul)
+
+           #create nsim newdata in ss
+           newhauls <- replicate(nsim, sample(hauls, length(hauls), replace=TRUE)) #indicies, not names
+           oldtotal <- as.character(cc$total)
+           oldrespcol <- as.character(cc$rformula[[2]])
 
            #within hauls, resample obs for each length class
-           newframe <- apply(newhauls, 2, function(i){ do.call(rbind, splith[i])})
-           ss <- lapply(newframe, function(z) {
+           newdata <- apply(newhauls, 2, function(i){ do.call(rbind, splith[i])})
+           ss <- lapply(newdata, function(z) {
                    #overwrite the response variable
-                   z[,x$modelInfo$respCol] <- rbinom(nrow(z), size=z[,"(total)"], prob=z[,x$modelInfo$respCol])/z[,"(total)"]
+                   z[,oldrespcol] <- rbinom(nrow(z), size=z[,oldtotal], prob=z[,oldrespcol])/z[,oldtotal]
+                   z[is.na(z[,oldrespcol]), oldrespcol] <- 0
                    return(z)
                  })
         } else {
             if (type=="nonparameteric") {
-              
+
               ss <- replicate(nsim, function() {
-                      z  <- x$frame
+                      z  <- olddata
                       #overwrite the response variable
-                      z[,z$modelInfo$respCol] <- rbinom(length(z), z[,"(total)"], z[,z$modelInfo$respCol])/z[,"(total)"]
+                      z[,oldrespcol] <- rbinom(length(z), z[,oldtotal], z[,oldrespcol])/z[,oldtotal]
                       return(z)
                     })
 
@@ -162,7 +167,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 1, seed = NULL,
     ##		      statistic = statistic, sim = sim, call = call,
     ##		      ran.gen = ran.gen, mle = mle),
     ##		 class = "boot")
-    s <- structure(list(t0 = t0, t = t(t.star), R = nsim, data = x$frame,
+    s <- structure(list(t0 = t0, t = t(t.star), R = nsim, data = model.frame(x),
 		   seed = .Random.seed,
 		   statistic = FUN, call = mc,
 		   ## these two are dummies
