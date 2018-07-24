@@ -2,7 +2,7 @@
 ##' @param object a \code{selfisher} object
 ##' @param newdata new data for prediction
 ##' @param se.fit return the standard errors of the predicted values?
-##' @param ptype 
+##' @param ptype
 ##' return expected value ("response": pr/(pr+1-p)),
 ##' the  predicted selection curve ("selection": r),
 ##' or the relative fishing power of the test gear ("prob")?
@@ -34,8 +34,8 @@ predict.selfisher <- function(object,newdata=NULL,
   ## do we want to re-do this part???
 
   ## need to 'fix' call to proper model.frame call whether or not
-  ## we have new data, because 
-  m <- match(c("subset", "total", "na.action", "offset"),
+  ## we have new data, because
+  m <- match(c("subset", "total", "na.action"),
              names(mf), 0L)
   mf <- mf[c(1L, m)]
   mf$drop.unused.levels <- TRUE
@@ -48,7 +48,7 @@ predict.selfisher <- function(object,newdata=NULL,
       mf$data <- newdata
       newFr <- eval.parent(mf)
   }
-    
+
   omi <- object$modelInfo  ## shorthand
 
   respCol <- match(respNm <- names(omi$respCol),names(newFr))
@@ -74,20 +74,18 @@ predict.selfisher <- function(object,newdata=NULL,
   PredCode <- .valid_ppredictcode[PredNm]
 
   ## need eval.parent() because we will do eval(mf) down below ...
-  TMBStruc <- 
-        ## FIXME: make first arg of mkTMBStruc into a formula list
+  TMBStruc <-
         ## with() interfering with eval.parent() ?
-        eval.parent(mkTMBStruc(RHSForm(omi$allForm$rformula,as.form=TRUE),
-                               omi$allForm$pformula,
-                               omi$allForm$dformula,
-                               mf,
+        eval.parent(mkTMBStruc(rformula=RHSForm(omi$allForm$rformula,as.form=TRUE),
+                               pformula=omi$allForm$pformula,
+                               dformula=omi$allForm$dformula,
+                               mf=mf,
                                fr=augFr,
                                yobs=yobs,
-                               offset=NULL,
                                total=NULL,
                                family=omi$familyStr,
                                link=omi$link,
-                               cc=omi$cc,
+                               cover=omi$cover,
                                Lp=omi$Lp,
                                pPredictCode=PredNm,
                                doPredict=as.integer(se.fit),

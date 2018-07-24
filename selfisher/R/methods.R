@@ -33,7 +33,7 @@ cNames <- list(r = "Selectivity model",
 trivialDisp <- function(object) {
     ## This version works on summary object or fitted model object
     object$modelInfo$family$link!="richards" ||(
-      identical(deparse(object$call$dformula),"~1") & 
+      identical(deparse(object$call$dformula),"~1") &
       object$modelInfo$family$link=="richards")
 }
 trivialFixef <- function(xnm,nm) {
@@ -148,7 +148,9 @@ print.ranef.selfisher <- function(x, simplify=TRUE, ...) {
 ##' @method getME selfisher
 ##' @export
 getME.selfisher <- function(object,
-                          name = c("Xr", "Xp","Zr", "Zp", "Xd", "theta"),
+                          name = c("Xr", "Xp","Zr", "Zp", "Xd",
+                                   "betar", "betap", "betad",
+                                   "br", "bp", "thetar", "thetap"),
                           ...)
 {
   if(missing(name)) stop("'name' must not be missing")
@@ -172,7 +174,13 @@ getME.selfisher <- function(object,
          "Zr"    = oo.env$data$Zr,
          "Zp"    = oo.env$data$Zp,
          "Xd"    = oo.env$data$Xd,
-         "theta" = oo.env$parList()$theta ,
+         "betar" = oo.env$parList(object$fit$par, object$fit$parfull)$betar,
+         "betap" = oo.env$parList(object$fit$par, object$fit$parfull)$betap,
+         "betad" = oo.env$parList(object$fit$par, object$fit$parfull)$betad,
+         "br" = oo.env$parList(object$fit$par, object$fit$parfull)$br,
+         "bp" = oo.env$parList(object$fit$par, object$fit$parfull)$bp,
+         "thetar" = oo.env$parList(object$fit$par, object$fit$parfull)$thetar,
+         "thetap" = oo.env$parList(object$fit$par, object$fit$parfull)$thetap,
 
          "..foo.." = # placeholder!
            stop(gettextf("'%s' is not implemented yet",
@@ -251,7 +259,7 @@ vcov.selfisher <- function(object, full=FALSE, ...) {
                        mkNames("p"),
                        mkNames("d")),
                 names(cNames))
-                
+
   if(full) {
       ## FIXME: haven't really decided if we should drop the
       ##   trivial variance-covariance dispersion parameter ??
@@ -315,7 +323,7 @@ cat.f <- function(...) cat(..., fill = TRUE)
         pass<-nchar(deparse(rhs))
     }
   }
-  if(!identical(cc <- deparse(call$pformula),"~0"))
+  if(!identical(cc <- deparse(call$pformula),"~0") & !call$cover)
     cat.f("Relative fishing power formula:  ",rep(' ',pass+2), cc, sep='')
   if(!identical(cc <- deparse(call$dformula),"~1"))
     cat.f("Richards exponent:      ",rep(' ',pass+2), cc, sep='')
@@ -333,6 +341,14 @@ cat.f <- function(...) cat(..., fill = TRUE)
 #    cat.f(" Subset:", deparse(cc))
 }
 
+.prt.retention <- function(ret, SR) {
+	if (!is.null(ret)){
+		cat("\nSize at retention probability:\n")
+		print(ret, rownames=FALSE)
+		cat("\nSelectivity range (SR):\n")
+		print(SR)
+	}
+}
 
 ### FIXME: attempted refactoring ...
 cat.f2 <- function(call,component,label,lwid,fwid=NULL,cind=NULL) {
@@ -354,7 +370,7 @@ cat.f2 <- function(call,component,label,lwid,fwid=NULL,cind=NULL) {
 ## don't use ##' until we're ready to generate a man page
 ## @param s delta (results of delta(x) for original object
 printDispersion <- function(s) {
-    
+
         dname <- "Richards exponent parameter"
         sname <- "delta"
         sval <- s
@@ -396,8 +412,8 @@ print.selfisher <-
   cat(do.call(paste,c(gvec,list(sep=" / "))),fill=TRUE)
 
   if(trivialDisp(x) & x$modelInfo$link=="richards") {# if trivial print here, else below(~x) or none(~0)
-    printDispersion(richardsdelta(x))  
-  } 
+    printDispersion(richardsdelta(x))
+  }
   ## Fixed effects:
   if(length(cf <- fixef(x)) > 0) {
     cat("\nFixed Effects:\n")
@@ -412,7 +428,7 @@ model.frame.selfisher <- function(formula, ...) {
     formula$frame
 }
 
-    
+
 ##' Compute residuals for a selfisher object
 ##'
 ##' @param object a \dQuote{selfisher} object
@@ -450,67 +466,232 @@ residuals.selfisher <- function(object, type=c("response", "pearson", "deviance"
        )
 }
 
+## Helper to get CI of simple *univariate monotone* parameter
+## function, i.e. a function of 'fit$par' and/or 'fit$parfull'.
+## Examples: 'sigma.glmmTMB' and some parts of 'VarCorr.glmmTMB'.
+
+##' @importFrom stats qchisq
+.CI_univariate_monotone <- function(object, f, reduce=NULL,
+                                    level=0.95,
+                                    name.prepend=NULL,
+                                    estimate = TRUE) {
+  x <- object
+  par <- x$fit$par
+  i <- seq_along(x$fit$parfull) ## Pointers into long par vector
+  r <- x$obj$env$random
+  if(!is.null(r)) i <- i[-r]    ## Pointers into short par subset
+  sdr <- x$sdr
+  sdpar <- summary(sdr, "fixed")[,2]
+  q <- sqrt(qchisq(level, df=1))
+  ans <- list()
+  x$fit$parfull[i] <- x$fit$par <- par - q * sdpar
+  ans$lower <- f(x)
+  x$fit$parfull[i] <- x$fit$par <- par + q * sdpar
+  ans$upper <- f(x)
+  if (estimate) {
+    ans$Estimate <- f(object)
+  }
+  if(is.null(reduce)) reduce <- function(x) x
+  ans <- lapply(ans, reduce)
+  nm <- names(ans)
+  tmp <- cbind(ans$lower, ans$upper)
+  if (is.null(tmp) || nrow(tmp) == 0L) return (NULL)
+  sort2 <- function(x) if(any(is.nan(x))) x * NaN else sort(x)
+  ans <- cbind( t( apply(tmp, 1, sort2) ) , ans$Estimate )
+  colnames(ans) <- nm
+  if (!is.null(name.prepend))
+    name.prepend <- rep(name.prepend, length.out = nrow(ans))
+  rownames(ans) <- paste(name.prepend,
+                         rownames(ans), sep="")
+  ans
+}
+
 ## copied from 'stats'
 
 format.perc <- function (probs, digits) {
-    paste(format(100 * probs, trim = TRUE, scientific = FALSE, digits = digits), 
+    paste(format(100 * probs, trim = TRUE, scientific = FALSE, digits = digits),
     "%")
 }
 
-##' @importFrom stats qnorm confint
+##' Calculate confidence intervals
+##'
+##' @details
+##' Available methods are
+##' \describe{
+##' \item{wald}{These intervals are based on the standard errors
+##' calculated for parameters on the scale
+##' of their internal parameterization depending on the family. Derived
+##' quantities such as standard deviation parameters and dispersion
+##' parameters are backtransformed. It follows that confidence
+##' intervals for these derived quantities are asymmetric.}
+##' \item{profile}{This method computes a likelihood profile
+##' for the specified parameter(s) using \code{profile.glmmTMB};
+##' fits a spline function to each half of the profile; and
+##' inverts the function to find the specified confidence interval.}
+##' \item{uniroot}{This method uses the \code{\link{uniroot}}
+##' function to find critical values of one-dimensional profile
+##' functions for each specified parameter.}
+##' }
+##' @param object \code{selfisher} fitted object.
+##' @param parm Specification of a parameter subset \emph{after}
+##'     \code{component} subset has been applied.
+##' @param level Confidence level.
+##' @param method 'wald', 'profile', or 'uniroot': see Details
+##' function)
+##' @param component Which of the three components 'r', 'p' or
+##'     'other' to select. Default is to select 'all'.
+##' @param estimate (logical) add a third column with estimate ?
+##' @param parallel method (if any) for parallel computation
+##' @param ncpus number of CPUs/cores to use for parallel computation
+##' @param cl cluster to use for parallel computation
+##' @param ... arguments may be passed to \code{\link{profile.selMod}} or
+##' \code{\link{tmbroot}}
+##' @importFrom stats qnorm
+##' @importFrom stats confint
 ##' @export
 confint.selfisher <- function (object, parm, level = 0.95,
-                             method=c("Wald","wald",  ## ugh -- allow synonyms?
-                                      "profile"),
-                             component= "r", ...) 
+                             method=c("wald",
+                                      "Wald",
+                                      "profile",
+                                      "uniroot"),
+                             component = c("all", "r", "p", "other"),
+                             estimate = TRUE,
+                             parallel = c("no", "multicore", "snow"),
+                             ncpus = getOption("profile.ncpus", 1L),
+                             cl = NULL,
+                             ...)
 {
-    dots <- list(...)
-    if (length(dots)>0) {
-        if (is.null(names(dots))) {
-            warning("extra (unnamed) arguments ignored")
-        } else {
-            warning(paste("extra arguments ignored: ",
-                          paste(names(dots),collapse=", ")))
+    method <- tolower(match.arg(method))
+    if (method=="wald") {
+        dots <- list(...)
+        if (length(dots)>0) {
+            if (is.null(names(dots))) {
+                warning("extra (unnamed) arguments ignored")
+            } else {
+                warning(paste("extra arguments ignored: ",
+                              paste(names(dots),collapse=", ")))
+            }
         }
     }
-    method <- match.arg(method)
-    cf <- unlist(fixef(object)[component])
-    pnames <- names(cf)
-    if (missing(parm)) 
-        parm <- pnames
-    else if (is.numeric(parm)) 
-        parm <- pnames[parm]
+    components <- match.arg(component, several.ok = TRUE)
+    components.has <- function(x)
+        any(match(c(x, "all"), components, nomatch=0L)) > 0L
     a <- (1 - level)/2
     a <- c(a, 1 - a)
     pct <- format.perc(a, 3)
     fac <- qnorm(a)
-    ci <- array(NA, dim = c(length(parm), 2L), dimnames = list(parm, 
-        pct))
+    estimate <- as.logical(estimate)
+    ci <- matrix(NA, 0, 2 + estimate,
+                 dimnames=list(NULL,
+                               c(pct, "Estimate")
+                               [c(TRUE, TRUE, estimate)] ))
     if (tolower(method)=="wald") {
-        vv <- vcov(object)[component]
-        ss <- unlist(lapply(vv,diag))
-        ses <- sqrt(ss)[parm]
-        ci[] <- cf[parm] + ses %o% fac
-    } else {
-        stop("profile CI not yet implemented")
-        ## FIXME: compute profile(object)
-        ## call confint.tmbprofile()
+        for (component in c("r", "p") ) {
+            if (components.has(component)) {
+                cf <- unlist(fixef(object)[component])
+                vv <- vcov(object)[component]
+                ss <- unlist(lapply(vv,diag))
+                ses <- sqrt(ss)
+                ci.tmp <- cf + ses %o% fac
+                if (estimate) ci.tmp <- cbind(ci.tmp, cf)
+                ci <- rbind(ci, ci.tmp)
+                ## VarCorr -> stddev
+                reduce <- function(VC) sapply(VC[[component]],
+                                              function(x)attr(x, "stddev"))
+                ci.sd <- .CI_univariate_monotone(object,
+                                                 VarCorr,
+                                                 reduce = reduce,
+                                                 level = level,
+                                                 name.prepend=paste(component,
+                                                                    "Std.Dev.",
+                                                                    sep="."),
+                                                 estimate = estimate)
+                ci <- rbind(ci, ci.sd)
+            }
+        }
+        if (components.has("other")) {
+            ## sigma
+            ff <- object$modelInfo$family$family
+            if (object$modelInfo$link=="richards") {
+                ci.sigma <- .CI_univariate_monotone(object,
+                                                    sigma,
+                                                    reduce = NULL,
+                                                    level=level,
+                                                    name.prepend="sigma",
+                                                    estimate = estimate)
+                ci <- rbind(ci, ci.sigma)
+            }
+        }
+        ## Take subset
+        if (!missing(parm)) {
+            ## FIXME: DRY/refactor with confint.profile
+            ## FIXME: beta_ not well defined; sigma parameters not
+            ## distinguishable (all called "sigma")
+            ## for non-trivial dispersion model
+            theta_parms <- grep("\\.(Std\\.Dev|Cor)\\.",rownames(ci))
+            ## if non-trivial disp, keep disp parms for "beta_"
+            disp_parms <- if (!trivialDisp(object)) numeric(0) else grep("^sigma",rownames(ci))
+            if (identical(parm,"theta_")) {
+                parm <- theta_parms
+            } else if (identical(parm,"beta_")) {
+                parm <- seq(nrow(ci))[-c(theta_parms,disp_parms)]
+            }
+            ci <- ci[parm, , drop=FALSE]
+        }
+        ## end Wald method
+    } else if (tolower(method=="uniroot")) {
+        ## FIXME: allow greater flexibility in specifying different
+        ##  ranges, etc. for different parameters
+        if (missing(parm)) {
+            parm <- seq_along(names(object$obj$par))
+        }
+        plist <- parallel_default(parallel,ncpus)
+        parallel <- plist$parallel
+        do_parallel <- plist$do_parallel
+        FUN <- function(n) {
+            tmbroot(obj=object$obj, name=n, target=0.5*qchisq(level,df=1),
+                    ...)
+        }
+        if (do_parallel) {
+            if (parallel == "multicore") {
+                L <- parallel::mclapply(parm, FUN, mc.cores = ncpus)
+            } else if (parallel=="snow") {
+                if (is.null(cl)) {
+                    ## start cluster
+                    new_cl <- TRUE
+                    cl <- parallel::makePSOCKcluster(rep("localhost", ncpus))
+                }
+                ## run
+                L <- parallel::clusterApply(cl, parm, FUN)
+                if (new_cl) {
+                    ## stop cluster
+                    parallel::stopCluster(cl)
+                }
+            }
+        } else { ## non-parallel
+            L <- lapply(as.list(parm), FUN)
+        }
+        L <- do.call(rbind,L)
+        rownames(L) <- rownames(vcov(object,full=TRUE))[parm]
+        if (estimate) {
+            ee <- object$obj$env
+            par <- ee$last.par.best
+            if (!is.null(ee$random))
+                par <- par[-ee$random]
+            par <- par[parm]
+            L <- cbind(L,par)
+        }
+        ci <- rbind(ci,L) ## really just adding column names!
+    }
+    else {  ## profile CIs
+        pp <- profile(object, parm=parm, level_max=level,
+                      parallel=parallel,ncpus=ncpus,
+                      ...)
+        ci <- confint(pp)
     }
     return(ci)
 }
 
-confint.tmbprofile <- function(object, parm=NULL, level = 0.95, ...) {
-    ## find locations of top-level (fixed + VarCorr) parameters
-    ## fit splines?
-    ## invert splines
-}
-
-##' @importFrom TMB tmbprofile
-profile.selfisher <- function(fitted, trace=FALSE, ...) {
-    ## lower default spacing?
-    ## use Wald std err for initial stepsize guess?
-    tmbprofile(fitted$obj, trace=trace, ...)
-}
 
 ##' @export
 ## FIXME: establish separate 'terms' components for
@@ -542,7 +723,7 @@ abbrDeparse <- function(x, width=60) {
 ##' @importFrom methods is
 ##' @importFrom stats var getCall pchisq anova
 ##' @export
-anova.selfisher <- function (object, ..., model.names = NULL) 
+anova.selfisher <- function (object, ..., model.names = NULL)
 {
     mCall <- match.call(expand.dots = TRUE)
     dots <- list(...)
@@ -552,45 +733,45 @@ anova.selfisher <- function (object, ..., model.names = NULL)
     if (any(modp)) {
         mods <- c(list(object), dots[modp])
         nobs.vec <- vapply(mods, nobs, 1L)
-        if (var(nobs.vec) > 0) 
+        if (var(nobs.vec) > 0)
             stop("models were not all fitted to the same size of dataset")
-        if (is.null(mNms <- model.names)) 
-            mNms <- vapply(as.list(mCall)[c(FALSE, TRUE, modp)], 
+        if (is.null(mNms <- model.names))
+            mNms <- vapply(as.list(mCall)[c(FALSE, TRUE, modp)],
                            safeDeparse, "")
         if (any(duplicated(mNms))) {
             warning("failed to find unique model names, assigning generic names")
             mNms <- paste0("MODEL", seq_along(mNms))
         }
-        if (length(mNms) != length(mods)) 
+        if (length(mNms) != length(mods))
             stop("model names vector and model list have different lengths")
         names(mods) <- sub("@env$", "", mNms)
         llks <- lapply(mods, logLik)
-        ii <- order(Df <- vapply(llks, attr, FUN.VALUE = numeric(1), 
+        ii <- order(Df <- vapply(llks, attr, FUN.VALUE = numeric(1),
             "df"))
         mods <- mods[ii]
         llks <- llks[ii]
         Df <- Df[ii]
         calls <- lapply(mods, getCall)
         data <- lapply(calls, `[[`, "data")
-        if (!all(vapply(data, identical, NA, data[[1]]))) 
+        if (!all(vapply(data, identical, NA, data[[1]])))
             stop("all models must be fit to the same data object")
         header <- paste("Data:", abbrDeparse(data[[1]]))
         subset <- lapply(calls, `[[`, "subset")
-        if (!all(vapply(subset, identical, NA, subset[[1]]))) 
+        if (!all(vapply(subset, identical, NA, subset[[1]])))
             stop("all models must use the same subset")
-        if (!is.null(subset[[1]])) 
+        if (!is.null(subset[[1]]))
             header <- c(header, paste("Subset:", abbrDeparse(subset[[1]])))
         llk <- unlist(llks)
         chisq <- 2 * pmax(0, c(NA, diff(llk)))
         dfChisq <- c(NA, diff(Df))
-        val <- data.frame(Df = Df, AIC = .sapply(llks, AIC), 
-            BIC = .sapply(llks, BIC), logLik = llk, deviance = -2 * 
-                llk, Chisq = chisq, `Chi Df` = dfChisq, `Pr(>Chisq)` = pchisq(chisq, 
-                dfChisq, lower.tail = FALSE), row.names = names(mods), 
+        val <- data.frame(Df = Df, AIC = .sapply(llks, AIC),
+            BIC = .sapply(llks, BIC), logLik = llk, deviance = -2 *
+                llk, Chisq = chisq, `Chi Df` = dfChisq, `Pr(>Chisq)` = pchisq(chisq,
+                dfChisq, lower.tail = FALSE), row.names = names(mods),
             check.names = FALSE)
         class(val) <- c("anova", class(val))
         forms <- lapply(lapply(calls, `[[`, "formula"), deparse)
-        structure(val, heading = c(header, "Models:", paste(rep(names(mods), 
+        structure(val, heading = c(header, "Models:", paste(rep(names(mods),
             times = lengths(forms)), unlist(forms), sep = ": ")))
     } else stop("no single-model anova() method for selfisher")
 }
@@ -603,14 +784,14 @@ fitted.selfisher <- function(object, ...) {
 
 
 ##' Simulate from a selfisher fitted model
-##' @method simulate selfisher 
+##' @method simulate selfisher
 ##' @param object selfisher fitted model
 ##' @param nsim number of response lists to simulate. Defaults to 1.
 ##' @param seed random number seed
-##' @param ... extra arguments 
-##' @details Random effects are also simulated from their estimated distribution. 
-##' Currently, it is not possible to condition on estimated random effects.  
-##' @return returns a list of vectors. The list has length \code{nsim}. 
+##' @param ... extra arguments
+##' @details Random effects are also simulated from their estimated distribution.
+##' Currently, it is not possible to condition on estimated random effects.
+##' @return returns a list of vectors. The list has length \code{nsim}.
 ##' Each simulated vector of observations is the same size as the vector of response variables in the original data set.
 ##' @importFrom stats simulate
 ##' @export
@@ -619,3 +800,16 @@ simulate.selfisher<-function(object, nsim=1, seed=NULL, ...){
     ret <- replicate(nsim, object$obj$simulate()$yobs, simplify=FALSE)
     ret
 }
+
+##' refit the same model to a new response
+##' @param object a fitted \code{selfisher} object
+##' @param newdata
+##' @importFrom lme4 refit
+##' @export
+refit.selfisher <- function(object, newdata, ...) {
+  cc <- getCall(object)
+  cc$data <- newdata
+  return(eval(cc))
+}
+
+

@@ -5,10 +5,9 @@
 ##' @param mf call to model frame
 ##' @param fr frame
 ##' @param yobs observed y
-##' @param offset offset
 ##' @param total total
 ##' @param link character
-##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
+##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
 ##' @param Lp controls calculation of length (L) at retention prob (p)
 ##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
@@ -18,14 +17,15 @@
 ##' @importFrom stats model.offset
 mkTMBStruc <- function(rformula, pformula, dformula,
                        mf, fr,
-                       yobs, offset, total,
-                       family, link_char, cc, Lp,
+                       yobs, total,
+                       family, link_char, cover, Lp,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0),
                        x0=NULL) {
 
   mapArg <- NULL
+  pformula.orig <- pformula ## Restore when done
 
   ## p=0.5 for equal fishing power in test and control codend
   if(pformula == ~0) {
@@ -33,17 +33,14 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     betap_init <- 0 #logit(.5) #p always has logit link
     mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
   }
-  if(cc) {
-  	pformula[] <- ~0 #no p in cc models
+  if(cover) {
+    pformula[] <- ~0 #no p in cover models
   }
 
-  ## n.b. eval.parent() chain needs to be preserved because
-  ## we are going to try to eval(mf) at the next level down,
-  ## need to be able to find data etc.
-  rList  <- eval.parent(getXReTrms(rformula, mf, fr))
-  pList  <- eval.parent(getXReTrms(pformula, mf, fr))
-  dList  <- eval.parent(getXReTrms(dformula, mf, fr,
-                                        ranOK=FALSE, "dispersion"))
+  rList  <- getXReTrms(rformula, mf, fr)
+  pList  <- getXReTrms(pformula, mf, fr)
+  dList  <- getXReTrms(dformula, mf, fr,
+                                  ranOK=FALSE, "dispersion")
 
   rReStruc <- with(rList, getReStruc(reTrms, ss))
   pReStruc <- with(pList, getReStruc(reTrms, ss))
@@ -51,25 +48,20 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   grpVar <- with(rList, getGrpVar(reTrms$flist))
 
   nobs <- nrow(fr)
-  ## FIXME: deal with offset in formula
-  ##if (grepl("offset", safeDeparse(formula)))
-  ##  stop("Offsets within formulas not implemented. Use argument.")
 
-  if (is.null(offset <- model.offset(fr)))
-      offset <- rep(0,nobs)
-
-  if (is.null(total <- fr[["(total)"]]))
-    total <- rep(1,nobs) #needed for predict function
+  if (is.null(total)) total <- rep(1,nobs)
 
   #FLAGS
-  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
+  #FIXME: might be 'width' instead of 'length'
+        #does it ever need to output L50 for 2 or more types?
+#  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
   Lp <- match.arg(Lp, c("basic", "none", "full"))
   Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2)
-  if(length(Lindex)!=1) {
-	  Lindex = -1 #flag for complex function => no L50 or SR
-	  Lpflag = 0 #no Lp calculations
-	}
-	
+#  if(length(Lindex)!=1) {
+#	  Lindex = -1 #flag for complex function => no L50 or SR
+#	  Lpflag = 0 #no Lp calculations
+#	}
+
   data.tmb <- namedList(
     Xr = rList$X,
     Zr = rList$Z,
@@ -77,7 +69,6 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     Zp = pList$Z,
     Xd = dList$X,
     yobs,
-    offset,
     total,
     ## information about random effects structure
     termsr = rReStruc,
@@ -85,9 +76,9 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     link = .valid_link[link_char],
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
-    Lindex = Lindex,
+#    Lindex = Lindex,
     Lpflag = Lpflag,
-    cc = as.numeric(cc),
+    cover = as.numeric(cover),
     whichPredict = whichPredict
   )
   getVal <- function(obj, component)
@@ -110,6 +101,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                     ))
   randomArg <- c(if(ncol(data.tmb$Zr) > 0) "br",
                  if(ncol(data.tmb$Zp) > 0) "bp")
+  pformula <- pformula.orig ## May have changed - restore
   namedList(data.tmb, parameters, mapArg, randomArg, grpVar,
             rList, pList, dList, rReStruc, pReStruc)
 }
@@ -155,8 +147,8 @@ getXReTrms <- function(formula, mf, fr, ranOK=TRUE, type="") {
     } else {
         mf$formula <- fixedform
 
-        terms_fixed <- terms(eval.parent(mf))
-        
+        terms_fixed <- terms(eval(mf,envir=environment(fixedform)))
+
         ## FIXME: make model matrix sparse?? i.e. Matrix:::sparse.model.matrix()
         X <- model.matrix(fixedform, fr, contrasts)
         ## will be 0-column matrix if fixed formula is empty
@@ -222,7 +214,7 @@ getGrpVar <- function(x)
 ##' Calculates number of random effects, number of parameters,
 ##' blocksize and number of blocks.  Mostly for internal use.
 ##' @param reTrms random-effects terms list
-##' @param ss a character string indicating a valid covariance structure. 
+##' @param ss a character string indicating a valid covariance structure.
 ##' Must be one of \code{names(selfisher:::.valid_covstruct)};
 ##' default is to use an unstructured  variance-covariance
 ##' matrix (\code{"us"}) for all blocks).
@@ -314,35 +306,37 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
   c(xrt$reTrms[whichReTrms],setNames(xrt[which],which))
 }
 
-##' Fit models with TMB
+##' Fit gear selectivity models with TMB
 ##' @param rformula combined fixed and random effects formula for the selectivity model, following lme4
 ##'     syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.
 ##' @param pformula a \emph{one-sided} (i.e., no response variable) formula for
 ##'     the ralaive fishing power of the test versus the control gear combining fixed and random effects:
 ##' \code{~0} can be used to specify equal fishing power (p=0.5).
 ##' The relative fishing power model uses a logit link.
-##' @param link A character indicating the link function for the selectivity model. 
+##' @param link A character indicating the link function for the selectivity model.
 ##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
-##' @param cc (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
+##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
 ##' @param x0 vector of initial values for the size selectivity model
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
-##' @param offset offset
+##' @param haul Name of column representing different hauls. Needed for double bootstrap.
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
 ##' @param debug whether to return the preprocessed data and parameter objects,
 ##'     without fitting the model
+##' @param optControl control parameters passed to \code{nlminb}
 ##' @importFrom stats binomial nlminb as.formula terms model.weights
 ##' @importFrom lme4 subbars findbars mkReTrms nobars
 ##' @importFrom Matrix t
 ##' @importFrom TMB MakeADFun sdreport
 ##' @details
 ##' \itemize{
-##' \item in all cases \code{selfisher} returns maximum likelihood estimates - random effects variance-covariance matrices are not REML (so use \code{REML=FALSE} when comparing with \code{lme4::lmer}), and residual standard deviations (\code{\link{sigma}}) are not bias-corrected. Because the \code{\link{df.residual}} method for \code{selfisher} currently counts the dispersion parameter, one would need to multiply by \code{sqrt(nobs(fit)/(1+df.residual(fit)))} when comparing with \code{lm} ...
-##' \item Lp="basic" will return values for L50 and SR
-##' \item Lp="none" supresses calculation of L50 and SR to save time
+##' \item in all cases \code{selfisher} returns maximum likelihood estimates.
+##' \item You only need to specify \code{haul} in models that are going to be bootstraped with type="double".
+##' \item Lp="basic" will return values for L50 and SR.
+##' \item Lp="none" supresses calculation of L50 and SR to save time.
 ##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
 ##' }
 ##' @useDynLib selfisher
@@ -351,18 +345,19 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @examples
 selfisher <- function (
     rformula,
+    data = NULL,
     pformula = ~1,
     dformula = ~1,
-    cc = FALSE,
+    cover = FALSE,
     x0 = NULL,
-    data = NULL,
     link = "logit",
     total=NULL,
-    offset=NULL,
+    haul=NULL,
     Lp="basic",
     se=TRUE,
     verbose=FALSE,
-    debug=FALSE
+    debug=FALSE,
+    optControl=list(iter.max=300, eval.max=400)
     )
 {
     ## FIXME: check for offsets in pformula/dispformula, throw an error
@@ -391,10 +386,12 @@ selfisher <- function (
     environment(dformula) <- environment(rformula)
     call$dformula <- dformula
 
-    if(link!="richards") dformula = ~0
+    call$cover <- cover
+
+    if(link!="richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "na.action", "offset"),
+    m <- match(c("data", "subset", "total", "haul", "na.action"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -412,19 +409,18 @@ selfisher <- function (
     ## model.frame.default looks for these objects in the environment
     ## of the *formula* (see 'extras', which is anything passed in ...),
     ## so they have to be put there ...
- #   for (i in c("total", "offset")) {
-	  for (i in c("offset")) {
-        if (!eval(bquote(missing(x=.(i)))))
-            assign(i, get(i, parent.frame()), environment(combForm))
-    }
+#    for (i in c("total", "offset")) {
+#        if (!eval(bquote(missing(x=.(i)))))
+#            assign(i, get(i, parent.frame()), environment(combForm))
+#    }
 
     mf$formula <- combForm
     fr <- eval(mf,envir=environment(formula),enclos=parent.frame())
-    
+
     ## FIXME: throw an error *or* convert character to factor
     ## convert character vectors to factor (defensive)
     ## fr <- factorize(fr.form, fr, char.only = TRUE)
-    ## store full, original formula & offset
+    ## store full, original formula
     ## attr(fr,"formula") <- combForm  ## unnecessary?
     nobs <- nrow(fr)
     total <- as.vector(model.total(fr))
@@ -432,7 +428,7 @@ selfisher <- function (
     if(is.null(total)) {
       stop("The total number of fish caught in the test and control gear must be specified using 'total' argument.")
     }
-    
+
     ## sanity checks (skipped!)
     ## wmsgNlev <- checkNlevels(reTrms$ flist, n=n, control, allow.n=TRUE)
     ## wmsgZdims <- checkZdims(reTrms$Ztlist, n=n, control, allow.n=TRUE)
@@ -441,17 +437,16 @@ selfisher <- function (
     ## store info on location of response variable
     respCol <- attr(terms(fr), "response")
     names(respCol) <- names(fr)[respCol]
-     
+
     ## extract response variable
     ## (name *must* be 'y' to match guts of family()$initialize
     y <- fr[,respCol]
 
-    ## eval.parent() necessary because we will try to eval(mf) down below
-    TMBStruc <- eval.parent(
-        mkTMBStruc(rformula, pformula, dformula,
-                   mf, fr,
-                   yobs=y, offset, total,
-                   family=familyStr, link_char=link, cc=cc, x0=x0, Lp=Lp))
+    TMBStruc <-
+        mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,
+                   mf=mf, fr=fr,
+                   yobs=y, total=total,
+                   family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp)
 
     ## short-circuit
     if(debug) return(TMBStruc)
@@ -466,7 +461,11 @@ selfisher <- function (
                      DLL = "selfisher"))
 
     optTime <- system.time(fit <- with(obj, nlminb(start=par, objective=fn,
-                                                   gradient=gr)))
+                                                   gradient=gr,
+                                                   control=optControl)))
+
+#    optTime <- system.time(fit <- with(obj, optim(par=par, fn=fn, gradient=gr,
+#                                                   method="BFGS")))
 
     fit$parfull <- obj$env$last.par.best ## This is in sync with fit$par
 
@@ -481,20 +480,20 @@ selfisher <- function (
     if(!is.null(sdr$pdHess)) {
       if(!sdr$pdHess) {
         warning(paste0("Model convergence problem; ",
-                       "non-positive-definite Hessian matrix. ", 
+                       "non-positive-definite Hessian matrix. ",
                        "See vignette('troubleshooting')"))
       } else {
         eigval <- try(1/eigen(sdr$cov.fixed)$values, silent=TRUE)
         if( is(eigval, "try-error") || ( min(eigval) < .Machine$double.eps*10 ) ) {
           warning(paste0("Model convergence problem; ",
-                       "extreme or very small eigen values detected. ", 
+                       "extreme or very small eigen values detected. ",
                        "See vignette('troubleshooting')"))
         }
       }
     }
 
     modelInfo <- with(TMBStruc,
-                      namedList(nobs, respCol, grpVar, familyStr, family, link, cc,
+                      namedList(nobs, respCol, grpVar, familyStr, family, link, cover,
                                 ## FIXME:apply condList -> cond earlier?
                                 reTrms = lapply(list(r=rList, p=pList),
                                                 stripReTrms),
@@ -515,7 +514,7 @@ selfisher <- function (
 ##' @importFrom stats AIC BIC
 llikAIC <- function(object) {
     llik <- logLik(object)
-    AICstats <- 
+    AICstats <-
         c(AIC = AIC(llik), BIC = BIC(llik), logLik = c(llik),
           deviance = sum((residuals(object,type="deviance"))^2),
           Pearson.ChiSq=sum((residuals(object,type="pearson"))^2),
@@ -534,7 +533,7 @@ ngrps.selfisher <- function(object, ...) {
     ## FIXME: adjust reTrms names for consistency rather than hacking here
     names(res) <- gsub("List$","",names(res))
     return(res)
-    
+
 }
 
 ngrps.factor <- function(object, ...) nlevels(object)
@@ -564,7 +563,6 @@ summary.selfisher <- function(object,...)
                            deparse.level = 0)
             ## statType <- if (useSc) "t" else "z"
             statType <- "z"
-            ## ??? should we provide Wald p-values???
             coefs <- cbind(coefs, 2*pnorm(abs(cf3), lower.tail = FALSE))
             colnames(coefs)[3:4] <- c(paste(statType, "value"),
                                       paste0("Pr(>|",statType,"|)"))
@@ -575,26 +573,38 @@ summary.selfisher <- function(object,...)
     ff <- fixef(object)
     vv <- vcov(object)
     coefs <- setNames(lapply(names(ff),
-            function(nm) if (trivialFixef(names(ff[[nm]]),nm)) NULL else
+            function(nm) if (trivialFixef(names(ff[[nm]]),nm) | is.null(vv[[nm]])) NULL else
                              mkCoeftab(ff[[nm]],vv[[nm]])),
                       names(ff))
 
     llAIC <- llikAIC(object)
-                   
+
     ## FIXME: You can't count on object@re@flist,
     ##	      nor compute VarCorr() unless is(re, "reTrms"):
     varcor <- VarCorr(object)
+    #If the model is simple, extract Lp and SR
+    if(all(names(object$fit$par)=="betar")) {
+      SR <- summary(object$sdr, "report")["SR",]
+      retention <- data.frame(p=object$obj$report()$retp,
+            Lp.Est=summary(object$sdr, "report")[1:length(object$obj$report()$retp),1],
+            Lp.Std.Err=summary(object$sdr, "report")[1:length(object$obj$report()$retp),2])
+    } else {
+      SR <- NULL
+      retention <- NULL
+    }
     structure(list(logLik = llAIC[["logLik"]],
                    family = famL, link = link,
                    ngrps = ngrps(object),
                    nobs = nobs(object),
                    coefficients = coefs, delta = sig,
                    vcov = vcov(object),
+                   SR = SR,
+                   retention = retention,
                    varcor = varcor, # and use formatVC(.) for printing.
-                   AICtab = llAIC[["AICtab"]], 
+                   AICtab = llAIC[["AICtab"]],
                    call = object$call
                ), class = "summary.selfisher")
-               
+
 }
 
 ## copied from lme4:::print.summary.merMod (makes use of
@@ -627,7 +637,7 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
         }
     }
    if((x$call$dformula== ~1)&(x$link=="richards")) {# if trivial print here, else below(~x) or none(~0)
-    printDispersion(x$delta)  
+    printDispersion(x$delta)
    }
     for (nn in names(x$coefficients)) {
         cc <- x$coefficients[[nn]]
@@ -638,6 +648,7 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
                          digits = digits, signif.stars = signif.stars)
         } ## if (p>0)
     }
+    .prt.retention(x$retention, x$SR)
 
     invisible(x)
 }## print.summary.selfisher
