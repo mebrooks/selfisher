@@ -457,16 +457,17 @@ Type allterms_nll(vector<Type> &u, vector<Type> theta,
   Type ans = 0;
   int upointer = 0;
   int tpointer = 0;
-  int nr, np = 0;
+  int nr, np = 0, offset;
   for(int i=0; i < terms.size(); i++){
     nr = terms(i).blockSize * terms(i).blockReps;
     // Note: 'blockNumTheta=0' ==> Same parameters as previous term.
     bool emptyTheta = ( terms(i).blockNumTheta == 0 );
+    offset = ( emptyTheta ? -np : 0 );
     np     = ( emptyTheta ?  np : terms(i).blockNumTheta );
     vector<int> dim(2);
     dim << terms(i).blockSize, terms(i).blockReps;
     array<Type> useg( &u(upointer), dim);
-    vector<Type> tseg = theta.segment(tpointer, np);
+    vector<Type> tseg = theta.segment(tpointer + offset, np);
     ans += termwise_nll(useg, tseg, terms(i), do_simulate);
     upointer += nr;
     tpointer += terms(i).blockNumTheta;
@@ -490,6 +491,7 @@ Type objective_function<Type>::operator() ()
   DATA_MATRIX(Xd);
   DATA_VECTOR(yobs);
   DATA_VECTOR(total);
+  DATA_VECTOR(offset);
 //  DATA_VECTOR(retp); //retention probability to predict corresponding L
 
   // Define covariance structure for the selectivity model
@@ -527,7 +529,7 @@ Type objective_function<Type>::operator() ()
   jnll += allterms_nll(bp, thetap, termsp, this->do_simulate);
 
   // Linear predictor
-  vector<Type> etar = Xr * betar + Zr * br;
+  vector<Type> etar = Xr * betar + Zr * br + offset;
   vector<Type> etap = Xp * betap + Zp * bp;
   vector<Type> etad = Xd * betad;
 
@@ -617,7 +619,7 @@ Type objective_function<Type>::operator() ()
   // method.
   if (doPredict) ADREPORT(mu_predict);
 
-  if(Lpflag!=0 & Xr.cols()==2 & Zr.cols()==0 & Xd.cols()<2) { //very simple model only (for now)
+  if(Lpflag!=0 & Xr.cols()==2 & Zr.cols()==0 & Xd.cols()<2) { //length only model (for now)
     vector<Type> retp(3); //retention probability
     vector<int> SRcalcs(2); //store indecies of .25 and .75 in retp
     switch(Lpflag) {
