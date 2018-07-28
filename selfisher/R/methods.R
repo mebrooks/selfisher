@@ -812,4 +812,48 @@ refit.selfisher <- function(object, newdata, ...) {
   return(eval(cc))
 }
 
+##' read in data from a single haul
+##' the name of the file where the data is stored is paste0(name, x, extension)
+##' @param name
+##' @param x possibly a number or other indicator of the unique haul
+##' @param extension
+##' @param raising name of raising factor if there is one e.g. "RAISING_FACTOR"
+##' @param sampling name of sampled fraction if there is one e.g. "SAMPLING"
+##' @export
+read_in_haul=function(x, name="Haul", extension=".txt", raising=NULL, sampling=NULL){
 
+  y=read.table(paste0(name, x, extension), header=TRUE, fill=TRUE)
+  lengths=subset(y, !is.na(as.numeric(as.character(y$LENGTH)))) #length data
+  lengths$LENGTH=as.numeric(as.character(lengths$LENGTH))
+  extra=subset(y, is.na(as.numeric(as.character(y$LENGTH))))#extra lines after length data
+
+  #Add columns of raising or sampling
+  if(!is.null(raising)) {
+    RFindex= which(extra$LENGTH==raising)
+    RF=extra[RFindex,]
+    colnames(RF)=paste0("raising_",colnames(RF))
+    for(i in 2:ncol(RF)) {lengths[,colnames(RF)[i]]=RF[i]}
+    extra=extra[-RFindex,] #remove that row from extras
+  } else
+    if(!is.null(sampling)) {
+      SFindex=which(extra$LENGTH==sampling)
+      SF=extra[SFindex,]
+      colnames(SF)=paste0("sampling_",colnames(SF))
+      for(i in 2:ncol(SF)) {lengths[,colnames(SF)[i]]=SF[i]}
+      extra=extra[-SFindex,] #remove that row from extras
+    }
+
+  #Add columns of covariates that are left in extra lines
+  covs=subset(extra, !is.na(extra[,2]) )[,1:2] #covariates
+  if(nrow(covs)>0)
+  {
+    for (i in 1:nrow(covs))
+    {
+      lengths[,as.character(covs[i,1])]=covs[i,2]
+    }
+  }
+
+  lengths$haul=x
+
+  return(lengths)
+}
