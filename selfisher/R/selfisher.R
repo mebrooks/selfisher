@@ -86,7 +86,11 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     vapply(obj, function(x) x[[component]], numeric(1))
 
   if(is.null(x0)) {
-    betar    = with(data.tmb, c(interceptinit(link_char), rep(0, ncol(Xr)-1)))
+    if(with(data.tmb,ncol(Xr))==2) {
+      betar = with(data.tmb, c(interceptinit(link_char), .3))
+    } else {
+      betar = with(data.tmb, c(interceptinit(link_char), rep(0, ncol(Xr)-1)))
+    }
   } else {
     betar = x0
   }
@@ -111,7 +115,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 ##' Assuming catchability of length 0 indivs is near 0
 ##' @param link character
 interceptinit <- function(link) {
-  r0 = 1e-12
+  r0 = 1e-5
   switch(link,
          "logit"    = log(r0/(1-r0)),
          "probit"   = qnorm(r0),
@@ -605,7 +609,9 @@ summary.selfisher <- function(object,...)
     ##	      nor compute VarCorr() unless is(re, "reTrms"):
     varcor <- VarCorr(object)
     #If the model is simple, extract Lp and SR
-    if(all(names(object$fit$par)=="betar")) {
+#    if(all(names(object$fit$par)=="betar")) {
+
+    if("SR" %in% rownames(summary(object$sdr, "report"))) {
       SR <- summary(object$sdr, "report")["SR",]
       retention <- data.frame(p=object$obj$report()$retp,
             Lp.Est=summary(object$sdr, "report")[1:length(object$obj$report()$retp),1],
