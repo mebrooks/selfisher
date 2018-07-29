@@ -619,16 +619,6 @@ Type objective_function<Type>::operator() ()
   // method.
   if (doPredict) ADREPORT(mu_predict);
 
-  //Debugging
-  int Zrsize=Zr.cols();
-  REPORT(Zrsize);
-  int Xrsize=Xr.cols();
-  REPORT(Xrsize);
-  int Xdsize=Xd.cols();
-  REPORT(Xdsize);
-  REPORT(Lpflag);
-  REPORT(etad(0));
-
   if((Lpflag!=0) && (Xr.cols()==2) && (Zr.cols()==0) && (Xd.cols()<2)) { //length only model (for now)
     vector<Type> retp(3); //retention probability
     vector<int> SRcalcs(2); //store indecies of .25 and .75 in retp
