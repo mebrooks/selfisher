@@ -35,7 +35,7 @@ predict.selfisher <- function(object,newdata=NULL,
 
   ## need to 'fix' call to proper model.frame call whether or not
   ## we have new data, because
-  m <- match(c("subset", "total", "na.action"),
+  m <- match(c("subset", "total", "na.action", "offset"),
              names(mf), 0L)
   mf <- mf[c(1L, m)]
   mf$drop.unused.levels <- TRUE
@@ -82,7 +82,7 @@ predict.selfisher <- function(object,newdata=NULL,
                                mf=mf,
                                fr=augFr,
                                yobs=yobs,
-                               total=NULL,
+                               total=model.total(augFr),
                                family=omi$familyStr,
                                link=omi$link,
                                cover=omi$cover,

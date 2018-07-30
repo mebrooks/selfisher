@@ -69,6 +69,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     Zp = pList$Z,
     Xd = dList$X,
     yobs,
+    offset = rList$offset,
     total,
     ## information about random effects structure
     termsr = rReStruc,
@@ -85,7 +86,11 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     vapply(obj, function(x) x[[component]], numeric(1))
 
   if(is.null(x0)) {
-    betar    = with(data.tmb, c(interceptinit(link_char), rep(0, ncol(Xr)-1)))
+    if(with(data.tmb,ncol(Xr))==2) {
+      betar = with(data.tmb, c(interceptinit(link_char), .3))
+    } else {
+      betar = with(data.tmb, c(interceptinit(link_char), rep(0, ncol(Xr)-1)))
+    }
   } else {
     betar = x0
   }
@@ -110,7 +115,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 ##' Assuming catchability of length 0 indivs is near 0
 ##' @param link character
 interceptinit <- function(link) {
-  r0 = 1e-12
+  r0 = 1e-5
   switch(link,
          "logit"    = log(r0/(1-r0)),
          "probit"   = qnorm(r0),
@@ -128,67 +133,81 @@ interceptinit <- function(link) {
 ##' \item{X}{design matrix for fixed effects}
 ##' \item{Z}{design matrix for random effects}
 ##' \item{reTrms}{output from \code{\link{mkReTrms}} from \pkg{lme4}}
+##' \item{offset}{offset vector, or vector of zeros if offset not specified}
 ##'
-##' @importFrom stats model.matrix contrasts
+##' @importFrom stats model.matrix
 ##' @importFrom methods new
 ##' @importFrom lme4 findbars nobars
 getXReTrms <- function(formula, mf, fr, ranOK=TRUE, type="") {
-    ## fixed-effects model matrix X -
-    ## remove random effect parts from formula:
-    fixedform <- formula
-    RHSForm(fixedform) <- nobars(RHSForm(fixedform))
+  ## fixed-effects model matrix X -
+  ## remove random effect parts from formula:
+  fixedform <- formula
+  RHSForm(fixedform) <- nobars(RHSForm(fixedform))
 
-    nobs <- nrow(fr)
-    ## check for empty fixed form
+  nobs <- nrow(fr)
+  ## check for empty fixed form
 
-    if (identical(RHSForm(fixedform), ~  0) ||
-        identical(RHSForm(fixedform), ~ -1)) {
-        X <- NULL
-    } else {
-        mf$formula <- fixedform
+  if (identical(RHSForm(fixedform), ~  0) ||
+      identical(RHSForm(fixedform), ~ -1)) {
+    X <- NULL
+  } else {
+    mf$formula <- fixedform
+    terms_fixed <- terms(eval(mf,envir=environment(fixedform)))
+    ## FIXME: make model matrix sparse?? i.e. Matrix:::sparse.model.matrix()
+#    X <- model.matrix(drop.special2(fixedform), fr)
+    X <- model.matrix(fixedform, fr)
+    ## will be 0-column matrix if fixed formula is empty
 
-        terms_fixed <- terms(eval(mf,envir=environment(fixedform)))
-
-        ## FIXME: make model matrix sparse?? i.e. Matrix:::sparse.model.matrix()
-        X <- model.matrix(fixedform, fr, contrasts)
-        ## will be 0-column matrix if fixed formula is empty
-
-        terms <- list(fixed=terms(terms_fixed))
-
+    offset <- rep(0,nobs)
+    terms <- list(fixed=terms(terms_fixed))
+    if (inForm(fixedform,quote(offset))) {
+      ## hate to match offset terms with model frame names
+      ##  via deparse, but since that what was presumably done
+      ##  internally to get the model frame names in the first place ...
+      for (o in extractForm(fixedform,quote(offset))) {
+        offset_nm <- deparse(o)
+        ## don't think this will happen, but ...
+        if (length(offset_nm)>1) {
+          stop("trouble reconstructing offset name")
+        }
+        offset <- offset + fr[[offset_nm]]
+      }
     }
-    ## ran-effects model frame (for predvars)
-    ## important to COPY formula (and its environment)?
-    ranform <- formula
-    if (is.null(findbars(ranform))) {
-        reTrms <- NULL
-        Z <- new("dgCMatrix",Dim=c(as.integer(nobs),0L)) ## matrix(0, ncol=0, nrow=nobs)
-        ss <- integer(0)
-    } else {
+  }
 
-        ## FIXME: check whether predvars are carried along correctly in terms
-        if (!ranOK) stop("no random effects allowed in ", type, " term")
-        RHSForm(ranform) <- subbars(RHSForm(reOnly(formula)))
+  ## ran-effects model frame (for predvars)
+  ## important to COPY formula (and its environment)?
+  ranform <- formula
+  if (is.null(findbars(ranform))) {
+    reTrms <- NULL
+    Z <- new("dgCMatrix",Dim=c(as.integer(nobs),0L)) ## matrix(0, ncol=0, nrow=nobs)
+    ss <- integer(0)
+  } else {
 
-        mf$formula <- ranform
-        reTrms <- mkReTrms(findbars(RHSForm(formula)), fr)
+    ## FIXME: check whether predvars are carried along correctly in terms
+    if (!ranOK) stop("no random effects allowed in ", type, " term")
+    RHSForm(ranform) <- subbars(RHSForm(reOnly(formula)))
 
-        ss <- splitForm(formula)
-        ss <- unlist(ss$reTrmClasses)
+    mf$formula <- ranform
+    reTrms <- mkReTrms(findbars(RHSForm(formula)), fr)
 
-        Z <- t(reTrms$Zt)   ## still sparse ...
-    }
+    ss <- splitForm(formula)
+    ss <- unlist(ss$reTrmClasses)
 
-    ## if(is.null(rankX.chk <- control[["check.rankX"]]))
-    ## rankX.chk <- eval(formals(lmerControl)[["check.rankX"]])[[1]]
-    ## X <- chkRank.drop.cols(X, kind=rankX.chk, tol = 1e-7)
-    ## if(is.null(scaleX.chk <- control[["check.scaleX"]]))
-    ##     scaleX.chk <- eval(formals(lmerControl)[["check.scaleX"]])[[1]]
-    ## X <- checkScaleX(X, kind=scaleX.chk)
+    Z <- t(reTrms$Zt)   ## still sparse ...
+  }
 
-    ## list(fr = fr, X = X, reTrms = reTrms, family = family, formula = formula,
-    ##      wmsgs = c(Nlev = wmsgNlev, Zdims = wmsgZdims, Zrank = wmsgZrank))
+  ## if(is.null(rankX.chk <- control[["check.rankX"]]))
+  ## rankX.chk <- eval(formals(lmerControl)[["check.rankX"]])[[1]]
+  ## X <- chkRank.drop.cols(X, kind=rankX.chk, tol = 1e-7)
+  ## if(is.null(scaleX.chk <- control[["check.scaleX"]]))
+  ##     scaleX.chk <- eval(formals(lmerControl)[["check.scaleX"]])[[1]]
+  ## X <- checkScaleX(X, kind=scaleX.chk)
 
-    namedList(X, Z, reTrms, ss, terms)
+  ## list(fr = fr, X = X, reTrms = reTrms, family = family, formula = formula,
+  ##      wmsgs = c(Nlev = wmsgNlev, Zdims = wmsgZdims, Zrank = wmsgZrank))
+
+  namedList(X, Z, reTrms, ss, terms, offset)
 }
 
 ##' Extract grouping variables for random effect terms from a factor list
@@ -353,6 +372,7 @@ selfisher <- function (
     link = "logit",
     total=NULL,
     haul=NULL,
+    offset=NULL,
     Lp="basic",
     se=TRUE,
     verbose=FALSE,
@@ -379,6 +399,12 @@ selfisher <- function (
 
     environment(rformula) <- parent.frame()
     call$rformula <- mc$rformula <- rformula
+    ## add offset-specified-as-argument to formula as + offset(...)
+    ## need evaluate offset within envi
+    if (!is.null(eval(substitute(offset),data,
+                      enclos=environment(rformula)))) {
+      rformula <- addForm0(rformula,makeOp(substitute(offset),op=quote(offset)))
+    }
 
     environment(pformula) <- environment(rformula)
     call$pformula <- pformula
@@ -391,7 +417,7 @@ selfisher <- function (
     if(link!="richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "haul", "na.action"),
+    m <- match(c("data", "subset", "total", "haul", "na.action", "offset"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -583,7 +609,9 @@ summary.selfisher <- function(object,...)
     ##	      nor compute VarCorr() unless is(re, "reTrms"):
     varcor <- VarCorr(object)
     #If the model is simple, extract Lp and SR
-    if(all(names(object$fit$par)=="betar")) {
+#    if(all(names(object$fit$par)=="betar")) {
+
+    if("SR" %in% rownames(summary(object$sdr, "report"))) {
       SR <- summary(object$sdr, "report")["SR",]
       retention <- data.frame(p=object$obj$report()$retp,
             Lp.Est=summary(object$sdr, "report")[1:length(object$obj$report()$retp),1],
