@@ -22,12 +22,13 @@
 \item{debug}{(logical) return the \code{TMBStruc} object that will be
 used internally for debugging?}
 
-\item{\dots}{unused - for method compatibility}
-
 \item{ptype}{return expected value ("response": pr/(pr+1-p)),
 the  predicted selection curve ("selection": r),
 or the relative fishing power of the test gear ("prob")?}
+
+\item{\dots}{unused - for method compatibility}
 }
 \description{
 prediction
 }
+

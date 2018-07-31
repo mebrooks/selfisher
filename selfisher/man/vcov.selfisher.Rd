@@ -19,3 +19,4 @@ By default (\code{full==FALSE}), a list of separate variance-covariance matrices
 \description{
 Calculate Variance-Covariance Matrix for a Fitted selfisher model
 }
+

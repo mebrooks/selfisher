@@ -2,8 +2,8 @@
 % Please edit documentation in R/utils.R
 \name{addForm}
 \alias{addForm}
-\alias{splitForm}
 \alias{noSpecials}
+\alias{splitForm}
 \title{Combine right-hand sides of an arbitrary number of formulas}
 \usage{
 addForm(...)
@@ -11,7 +11,7 @@ addForm(...)
 splitForm(formula, defaultTerm = "us", allowFixedOnly = TRUE,
   allowNoSpecials = TRUE, debug = FALSE)
 
-noSpecials(term, delete = TRUE)
+noSpecials(term, delete = TRUE, debug = FALSE)
 }
 \arguments{
 \item{...}{arguments to pass through to \code{addForm0}}
@@ -23,6 +23,8 @@ noSpecials(term, delete = TRUE)
 \item{allowFixedOnly}{(logical) are formulas with no RE terms OK?}
 
 \item{allowNoSpecials}{(logical) are formulas with only standard RE terms OK?}
+
+\item{debug}{debugging mode (print stuff)?}
 
 \item{term}{language object}
 }
@@ -57,8 +59,10 @@ splitForm(~(((x+y))))               ## lots of parentheses
 noSpecials(y~1+us(1|f))
 noSpecials(y~1+us(1|f),delete=FALSE)
 noSpecials(y~us(1|f))
+noSpecials(y~us+1)  ## should *not* delete unless head of a function
 }
 \author{
 Steve Walker
 }
 \keyword{internal}
+

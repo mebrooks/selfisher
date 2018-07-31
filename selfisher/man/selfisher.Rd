@@ -2,31 +2,38 @@
 % Please edit documentation in R/selfisher.R
 \name{selfisher}
 \alias{selfisher}
-\title{Fit models with TMB}
+\title{Fit gear selectivity models with TMB}
 \usage{
-selfisher(rformula, pformula = ~0, dformula = ~1, data = NULL,
-  link = "logit", total = NULL, offset = NULL, se = TRUE,
-  verbose = FALSE, debug = FALSE)
+selfisher(rformula, data = NULL, pformula = ~1, dformula = ~1,
+  cover = FALSE, x0 = NULL, link = "logit", total = NULL, haul = NULL,
+  offset = NULL, Lp = "basic", se = TRUE, verbose = FALSE,
+  debug = FALSE, optControl = list(iter.max = 300, eval.max = 400))
 }
 \arguments{
 \item{rformula}{combined fixed and random effects formula for the selectivity model, following lme4
 syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.}
 
+\item{data}{data frame}
+
 \item{pformula}{a \emph{one-sided} (i.e., no response variable) formula for
     the ralaive fishing power of the test versus the control gear combining fixed and random effects:
-the default \code{~0} specifies equal fishing power (p=0.5).
+\code{~0} can be used to specify equal fishing power (p=0.5).
 The relative fishing power model uses a logit link.}
 
 \item{dformula}{a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.}
 
-\item{data}{data frame}
+\item{cover}{(logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)}
 
-\item{link}{A character indicating the link function for the selectivity model. 
+\item{x0}{vector of initial values for the size selectivity model}
+
+\item{link}{A character indicating the link function for the selectivity model.
 \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).}
 
 \item{total}{The number of total fish caught in the test and control gear.}
 
-\item{offset}{offset}
+\item{haul}{Name of column representing different hauls. Needed for double bootstrap.}
+
+\item{Lp}{controls calculation of length (L) at retention prob (p), see details}
 
 \item{se}{whether to return standard errors}
 
@@ -34,12 +41,19 @@ The relative fishing power model uses a logit link.}
 
 \item{debug}{whether to return the preprocessed data and parameter objects,
 without fitting the model}
+
+\item{optControl}{control parameters passed to \code{nlminb}}
 }
 \description{
-Fit models with TMB
+Fit gear selectivity models with TMB
 }
 \details{
 \itemize{
-\item in all cases \code{selfisher} returns maximum likelihood estimates - random effects variance-covariance matrices are not REML (so use \code{REML=FALSE} when comparing with \code{lme4::lmer}), and residual standard deviations (\code{\link{sigma}}) are not bias-corrected. Because the \code{\link{df.residual}} method for \code{selfisher} currently counts the dispersion parameter, one would need to multiply by \code{sqrt(nobs(fit)/(1+df.residual(fit)))} when comparing with \code{lm} ...
+\item in all cases \code{selfisher} returns maximum likelihood estimates.
+\item You only need to specify \code{haul} in models that are going to be bootstraped with type="double".
+\item Lp="basic" will return values for L50 and SR.
+\item Lp="none" supresses calculation of L50 and SR to save time.
+\item Lp="full" will return values of Lp for p=5 to 95 as well as SR
 }
 }
+

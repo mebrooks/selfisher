@@ -11,7 +11,7 @@ getReStruc(reTrms, ss = NULL)
 \arguments{
 \item{reTrms}{random-effects terms list}
 
-\item{ss}{a character string indicating a valid covariance structure. 
+\item{ss}{a character string indicating a valid covariance structure.
 Must be one of \code{names(selfisher:::.valid_covstruct)};
 default is to use an unstructured  variance-covariance
 matrix (\code{"us"}) for all blocks).}
@@ -36,3 +36,4 @@ rt2 <- lme4::lFormula(Reaction~Days+(Days|Subject),
                     sleepstudy)$reTrms
 getReStruc(rt)
 }
+

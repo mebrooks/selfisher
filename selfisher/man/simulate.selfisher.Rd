@@ -16,13 +16,14 @@
 \item{...}{extra arguments}
 }
 \value{
-returns a list of vectors. The list has length \code{nsim}. 
+returns a list of vectors. The list has length \code{nsim}.
 Each simulated vector of observations is the same size as the vector of response variables in the original data set.
 }
 \description{
 Simulate from a selfisher fitted model
 }
 \details{
-Random effects are also simulated from their estimated distribution. 
+Random effects are also simulated from their estimated distribution.
 Currently, it is not possible to condition on estimated random effects.
 }
+

@@ -4,7 +4,8 @@
 \alias{residuals.selfisher}
 \title{Compute residuals for a selfisher object}
 \usage{
-\method{residuals}{selfisher}(object, type = c("response", "pearson"), ...)
+\method{residuals}{selfisher}(object, type = c("response", "pearson",
+  "deviance"), ...)
 }
 \arguments{
 \item{object}{a \dQuote{selfisher} object}
@@ -16,3 +17,4 @@
 \description{
 Compute residuals for a selfisher object
 }
+

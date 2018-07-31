@@ -29,3 +29,4 @@ data(sleepstudy, package = "lme4")
 fixef(selfisher(Reaction ~ Days + (1|Subject) + (0+Days|Subject), sleepstudy))
 }
 \keyword{models}
+

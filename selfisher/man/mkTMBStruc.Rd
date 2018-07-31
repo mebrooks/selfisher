@@ -4,9 +4,9 @@
 \alias{mkTMBStruc}
 \title{Extract info from formulas, reTrms, etc., format for TMB}
 \usage{
-mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, offset, total, family,
-  link, pPredictCode = "selection", doPredict = 0,
-  whichPredict = integer(0))
+mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, total, family, link_char,
+  cover, Lp, pPredictCode = "selection", doPredict = 0,
+  whichPredict = integer(0), x0 = NULL)
 }
 \arguments{
 \item{rformula}{selectivity formula}
@@ -21,19 +21,24 @@ mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, offset, total, family,
 
 \item{yobs}{observed y}
 
-\item{offset}{offset}
-
 \item{total}{total}
 
-\item{link}{character}
+\item{cover}{(logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)}
+
+\item{Lp}{controls calculation of length (L) at retention prob (p)}
 
 \item{pPredictCode}{relative fishing power code}
 
 \item{doPredict}{flag to enable sds of predictions}
 
 \item{whichPredict}{which observations in model frame represent predictions}
+
+\item{x0}{vector of initial values for the size selectivity model}
+
+\item{link}{character}
 }
 \description{
 Extract info from formulas, reTrms, etc., format for TMB
 }
 \keyword{internal}
+

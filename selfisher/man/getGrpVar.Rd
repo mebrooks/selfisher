@@ -24,3 +24,4 @@ rt <- lme4::glFormula(cbind(size,incidence-size)~(1|herd)+(1|obs),
 getGrpVar(rt$flist)
 }
 \keyword{internal}
+

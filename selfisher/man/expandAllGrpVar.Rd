@@ -13,10 +13,11 @@ expandAllGrpVar(bb)
 Modeled after lme4:::expandSlash, by Doug Bates
 }
 \examples{
-ff <- selfisher:::fbx(y~1+(x|f/g))
-selfisher:::expandAllGrpVar(ff)
-selfisher:::expandAllGrpVar(quote(1|(f/g)/h))
-selfisher:::expandAllGrpVar(quote(1|f/g/h))
-selfisher:::expandAllGrpVar(quote(1|f*g))
+ff <- glmmTMB:::fbx(y~1+(x|f/g))
+glmmTMB:::expandAllGrpVar(ff)
+glmmTMB:::expandAllGrpVar(quote(1|(f/g)/h))
+glmmTMB:::expandAllGrpVar(quote(1|f/g/h))
+glmmTMB:::expandAllGrpVar(quote(1|f*g))
 }
 \keyword{internal}
+
