@@ -638,6 +638,14 @@ Type objective_function<Type>::operator() ()
       SRcalcs(0)=4;
       SRcalcs(1)=14;
       break;
+    case 3: //100
+      retp.resize(100);
+      for(int i=0; i<100;i++) {
+        retp(i) = Type(0.01+0.01*i);
+      }
+      SRcalcs(0)=24;//index of retp==0.25
+      SRcalcs(1)=74;//index of retp==0.75
+      break;
     default:
       error("Invalid 'Lpflag'");
     }

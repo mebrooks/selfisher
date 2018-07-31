@@ -54,6 +54,7 @@ Fit gear selectivity models with TMB
 \item Lp="basic" will return values for L50 and SR.
 \item Lp="none" supresses calculation of L50 and SR to save time.
 \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
+\item Lp="100" will return values of Lp for p=1 to 100 as well as SR
 }
 }
 

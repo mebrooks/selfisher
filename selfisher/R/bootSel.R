@@ -13,6 +13,15 @@ L50SR <- function(x) {
 	return(c("L50"=L50,"SR"=SR))
 }
 
+##' a function taking a fitted \code{selfisher} object as input and returning the
+##' L1 to 100 (i.e. the lengths with catch probabilities 0.01 to 1.0)
+##' @param x \code{selfisher} object fitted with arugument code{Lp="100"}
+##' @export
+L100 <- function(x) {
+  L100 <- summary(x$sdr, "report")[which(x$obj$report()$retp %in% seq(0.01, 1, length.out=100)),1]
+  return("L100"=L100)
+}
+
 ##' Perform bootstrap
 ##' @param x a fitted \code{selfisher} object
 ##' @param FUN a function taking a fitted

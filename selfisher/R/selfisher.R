@@ -55,12 +55,9 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   #FIXME: might be 'width' instead of 'length'
         #does it ever need to output L50 for 2 or more types?
 #  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
-  Lp <- match.arg(Lp, c("basic", "none", "full"))
-  Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2)
-#  if(length(Lindex)!=1) {
-#	  Lindex = -1 #flag for complex function => no L50 or SR
-#	  Lpflag = 0 #no Lp calculations
-#	}
+  Lp <- match.arg(Lp, c("basic", "none", "full", "100"))
+  Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2, "100"=3)
+
 
   data.tmb <- namedList(
     Xr = rList$X,
@@ -357,6 +354,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \item Lp="basic" will return values for L50 and SR.
 ##' \item Lp="none" supresses calculation of L50 and SR to save time.
 ##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
+##' \item Lp="100" will return values of Lp for p=1 to 100 as well as SR
 ##' }
 ##' @useDynLib selfisher
 ##' @importFrom stats update
