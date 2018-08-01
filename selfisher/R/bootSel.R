@@ -19,7 +19,8 @@ L50SR <- function(x) {
 ##' @export
 L100 <- function(x) {
   L100 <- summary(x$sdr, "report")[which(x$obj$report()$retp %in% seq(0.01, 1, length.out=100)),1]
-  return("L100"=L100)
+  names(L100)=1:100
+  return(L100)
 }
 
 ##' Perform bootstrap
@@ -96,7 +97,8 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
            splith <- split(olddata, oldhaul)
 
            #create nsim newdata in ss
-           newhauls <- replicate(nsim, sample(hauls, length(hauls), replace=TRUE)) #indicies, not names
+#           newhauls <- replicate(nsim, sample(hauls, length(hauls), replace=TRUE)) #indicies, not names
+           newhauls <- replicate(nsim, sample(1:length(hauls), length(hauls), replace=TRUE)) #indicies, not names
            oldtotal <- as.character(cc$total)
            oldrespcol <- as.character(cc$rformula[[2]])
 

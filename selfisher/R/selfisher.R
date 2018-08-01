@@ -330,7 +330,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \code{~0} can be used to specify equal fishing power (p=0.5).
 ##' The relative fishing power model uses a logit link.
 ##' @param link A character indicating the link function for the selectivity model.
-##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
+##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
 ##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
 ##' @param x0 vector of initial values for the size selectivity model
@@ -355,6 +355,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \item Lp="none" supresses calculation of L50 and SR to save time.
 ##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
 ##' \item Lp="100" will return values of Lp for p=1 to 100 as well as SR
+##' \item Use \code{getCapabilities()} to see options for links and RE
 ##' }
 ##' @useDynLib selfisher
 ##' @importFrom stats update

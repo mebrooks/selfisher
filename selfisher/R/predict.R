@@ -2,7 +2,7 @@
 ##' @param object a \code{selfisher} object
 ##' @param newdata new data for prediction
 ##' @param se.fit return the standard errors of the predicted values?
-##' @param ptype
+##' @param type
 ##' return expected value ("response": pr/(pr+1-p)),
 ##' the  predicted selection curve ("selection": r),
 ##' or the relative fishing power of the test gear ("prob")?
