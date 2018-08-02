@@ -19,12 +19,12 @@
 
 \item{allow.new.levels}{(not yet implemented) allow previously unobserved levels in random-effects grouping variables?}
 
-\item{debug}{(logical) return the \code{TMBStruc} object that will be
-used internally for debugging?}
-
-\item{ptype}{return expected value ("response": pr/(pr+1-p)),
+\item{type}{return expected value ("response": pr/(pr+1-p)),
 the  predicted selection curve ("selection": r),
 or the relative fishing power of the test gear ("prob")?}
+
+\item{debug}{(logical) return the \code{TMBStruc} object that will be
+used internally for debugging?}
 
 \item{\dots}{unused - for method compatibility}
 }

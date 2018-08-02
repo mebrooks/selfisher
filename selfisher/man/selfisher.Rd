@@ -27,7 +27,7 @@ The relative fishing power model uses a logit link.}
 \item{x0}{vector of initial values for the size selectivity model}
 
 \item{link}{A character indicating the link function for the selectivity model.
-\code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).}
+\code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "richards"}
 
 \item{total}{The number of total fish caught in the test and control gear.}
 
@@ -55,6 +55,7 @@ Fit gear selectivity models with TMB
 \item Lp="none" supresses calculation of L50 and SR to save time.
 \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
 \item Lp="100" will return values of Lp for p=1 to 100 as well as SR
+\item Use \code{getCapabilities()} to see options for links and RE
 }
 }
 

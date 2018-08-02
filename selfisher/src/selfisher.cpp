@@ -542,7 +542,7 @@ Type objective_function<Type>::operator() ()
   //vector<Type> phi(r.size());
   vector<Type> logit_phi(r.size());
   vector<Type> p(etap.size());
-  if(!cover) { //trowser-trawl
+  if(!cover) { //trowser-trawl, alternate haul, catch comparison
     p = invlogit(etap);
     //phi=p*r/(p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
     logit_phi = log(p) + log(r) - log(Type(1.0)-p);
