@@ -542,7 +542,7 @@ Type objective_function<Type>::operator() ()
   //vector<Type> phi(r.size());
   vector<Type> logit_phi(r.size());
   vector<Type> p(etap.size());
-  if(!cover) { //trowser-trawl
+  if(!cover) { //trowser-trawl, alternate haul, catch comparison
     p = invlogit(etap);
     //phi=p*r/(p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
     logit_phi = log(p) + log(r) - log(Type(1.0)-p);
@@ -637,6 +637,14 @@ Type objective_function<Type>::operator() ()
       retp << Type(0.05),Type(0.10),Type(0.15),Type(0.20),Type(0.25),Type(0.30),Type(0.35),Type(0.40),Type(0.45),Type(0.50),Type(0.55),Type(0.60),Type(0.65),Type(0.70),Type(0.75),Type(0.80),Type(0.85),Type(0.90),Type(0.95);
       SRcalcs(0)=4;
       SRcalcs(1)=14;
+      break;
+    case 3: //100
+      retp.resize(100);
+      for(int i=0; i<100;i++) {
+        retp(i) = Type(0.01+0.01*i);
+      }
+      SRcalcs(0)=24;//index of retp==0.25
+      SRcalcs(1)=74;//index of retp==0.75
       break;
     default:
       error("Invalid 'Lpflag'");

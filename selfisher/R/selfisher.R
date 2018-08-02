@@ -2,9 +2,11 @@
 ##' @param rformula selectivity formula
 ##' @param pformula relative fishing power formula
 ##' @param dformula Richards delta parameter formula
+##' @param combForm combined formula
 ##' @param mf call to model frame
 ##' @param fr frame
 ##' @param yobs observed y
+##' @param respCol response column
 ##' @param total total
 ##' @param link character
 ##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
@@ -16,13 +18,16 @@
 ##' @keywords internal
 ##' @importFrom stats model.offset
 mkTMBStruc <- function(rformula, pformula, dformula,
+                       combForm,
                        mf, fr,
                        yobs, total,
                        family, link_char, cover, Lp,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0),
-                       x0=NULL) {
+                       x0=NULL,
+                       call=NULL,
+                       respCol) {
 
   mapArg <- NULL
   pformula.orig <- pformula ## Restore when done
@@ -51,16 +56,17 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 
   if (is.null(total)) total <- rep(1,nobs)
 
+  ## store info on location of response variable
+  respCol <- attr(terms(fr), "response")
+  names(respCol) <- names(fr)[respCol]
+
   #FLAGS
   #FIXME: might be 'width' instead of 'length'
         #does it ever need to output L50 for 2 or more types?
 #  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
-  Lp <- match.arg(Lp, c("basic", "none", "full"))
-  Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2)
-#  if(length(Lindex)!=1) {
-#	  Lindex = -1 #flag for complex function => no L50 or SR
-#	  Lpflag = 0 #no Lp calculations
-#	}
+  Lp <- match.arg(Lp, c("basic", "none", "full", "100"))
+  Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2, "100"=3)
+
 
   data.tmb <- namedList(
     Xr = rList$X,
@@ -69,6 +75,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     Zp = pList$Z,
     Xd = dList$X,
     yobs,
+    respCol,
     offset = rList$offset,
     total,
     ## information about random effects structure
@@ -77,7 +84,6 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     link = .valid_link[link_char],
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
-#    Lindex = Lindex,
     Lpflag = Lpflag,
     cover = as.numeric(cover),
     whichPredict = whichPredict
@@ -108,7 +114,10 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                  if(ncol(data.tmb$Zp) > 0) "bp")
   pformula <- pformula.orig ## May have changed - restore
   namedList(data.tmb, parameters, mapArg, randomArg, grpVar,
-            rList, pList, dList, rReStruc, pReStruc)
+            rList, pList, dList, rReStruc, pReStruc,
+            respCol,
+            allForm=namedList(combForm,rformula,pformula,dformula),
+            fr, call)
 }
 
 ##' Initialize the intercept based on the link funciton
@@ -123,6 +132,7 @@ interceptinit <- function(link) {
          "loglog"   = -log(-log(r0)),
          "richards" = log(r0/(1-r0)))
 }
+
 ##' Create X and random effect terms from formula
 ##' @param formula current formula, containing both fixed & random effects
 ##' @param mf matched call
@@ -333,7 +343,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \code{~0} can be used to specify equal fishing power (p=0.5).
 ##' The relative fishing power model uses a logit link.
 ##' @param link A character indicating the link function for the selectivity model.
-##' \code{"logit"} is the default, but other options can be used (use \code{getCapabilities()} to see options).
+##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
 ##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
 ##' @param x0 vector of initial values for the size selectivity model
@@ -357,6 +367,8 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \item Lp="basic" will return values for L50 and SR.
 ##' \item Lp="none" supresses calculation of L50 and SR to save time.
 ##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
+##' \item Lp="100" will return values of Lp for p=1 to 100 as well as SR
+##' \item Use \code{getCapabilities()} to see options for links and RE
 ##' }
 ##' @useDynLib selfisher
 ##' @importFrom stats update
@@ -417,7 +429,7 @@ selfisher <- function (
     if(link!="richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "haul", "na.action", "offset"),
+    m <- match(c("data", "subset", "total", "haul", "offset"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -426,22 +438,25 @@ selfisher <- function (
     ## want the model frame to contain the union of all variables
     ## used in any of the terms
     ## combine all formulas
-    formList <- list(rformula, pformula)
-    formList <- lapply(formList,
-                   function(x) noSpecials(subbars(x), delete=FALSE))
-                       ## substitute "|" by "+"; drop special
+    formList <- list(rformula, pformula, dformula)
+    for (i in seq_along(formList)) {
+      f <- formList[[i]] ## abbreviate
+      ## substitute "|" by "+"; drop specials
+      f <- noSpecials(subbars(f),delete=FALSE)
+      formList[[i]] <- f
+    }
     combForm <- do.call(addForm,formList)
     environment(combForm) <- environment(rformula)
     ## model.frame.default looks for these objects in the environment
     ## of the *formula* (see 'extras', which is anything passed in ...),
     ## so they have to be put there ...
-#    for (i in c("total", "offset")) {
+#    for (i in c("weights", "offset")) {
 #        if (!eval(bquote(missing(x=.(i)))))
 #            assign(i, get(i, parent.frame()), environment(combForm))
 #    }
 
     mf$formula <- combForm
-    fr <- eval(mf,envir=environment(formula),enclos=parent.frame())
+    fr <- eval(mf,envir=environment(rformula),enclos=parent.frame())
 
     ## FIXME: throw an error *or* convert character to factor
     ## convert character vectors to factor (defensive)
@@ -470,9 +485,11 @@ selfisher <- function (
 
     TMBStruc <-
         mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,
+                   combForm = combForm,
                    mf=mf, fr=fr,
                    yobs=y, total=total,
-                   family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp)
+                   family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp,
+                   call=call, respCol=respCol)
 
     ## short-circuit
     if(debug) return(TMBStruc)
@@ -489,9 +506,6 @@ selfisher <- function (
     optTime <- system.time(fit <- with(obj, nlminb(start=par, objective=fn,
                                                    gradient=gr,
                                                    control=optControl)))
-
-#    optTime <- system.time(fit <- with(obj, optim(par=par, fn=fn, gradient=gr,
-#                                                   method="BFGS")))
 
     fit$parfull <- obj$env$last.par.best ## This is in sync with fit$par
 
@@ -532,7 +546,8 @@ selfisher <- function (
     ##    and provide a way to regenerate it as necessary
     ## If we don't include frame, then we may have difficulty
     ##    with predict() in its current form
-    structure(namedList(obj, fit, sdr, call, frame=fr, modelInfo,
+    structure(namedList(obj, fit, sdr, call=TMBStruc$call,
+                        frame=TMBStruc$fr, modelInfo,
                         fitted),
               class = "selfisher")
 }
