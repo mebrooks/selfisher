@@ -25,14 +25,14 @@ before_install:
   - sed -i.bak "s/ g++/ ${CXX}${CLANG_EXTRA_ARG}/" ~/.R/Makevars
   - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
   - tlmgr install chicago
-  - cd glmmTMB
+  - cd selfisher
 
 script:
   - |
     travis_wait 59 R CMD build .
-    travis_wait 59 R CMD check glmmTMB*tar.gz
+    travis_wait 59 R CMD check selfisher*tar.gz
 after_script:
-  - tar -ztvf glmmTMB_*.tar.gz
+  - tar -ztvf selfisher_*.tar.gz
   - echo ${NOT_CRAN}
 
 after_success:
