@@ -25,8 +25,9 @@ Extract the fixed-effects estimates
 Extract the estimates of the fixed-effects parameters from a fitted model.
 }
 \examples{
-data(sleepstudy, package = "lme4")
-fixef(selfisher(Reaction ~ Days + (1|Subject) + (0+Days|Subject), sleepstudy))
+data(haddock)
+dat=transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+fixef(selfisher(prop~Lengths, p=~1, total=tot, dat))
 }
 \keyword{models}
 
