@@ -2,15 +2,7 @@ Package: selfisher
 Title: Selectivity of Fisheries Gear, Modeled using Template Model Builder
 Version: 0.0.0
 Date: 2017-2-2
-Authors@R: c(person("Arni","Magnusson",role="aut"),
-	    person("Hans","Skaug",role="aut"),
-	    person("Anders","Nielsen",role="aut"),
-	    person("Casper","Berg",role="aut"),
-            person("Kasper","Kristensen",role="aut"),
-            person("Martin","Maechler",role="aut"),
-            person("Koen","van Bentham",role="aut"),
-            person("Ben","Bolker",role="aut"),
-            person("Mollie","Brooks",role=c("aut","cre"),
+Authors@R: c(person("Mollie","Brooks",role=c("aut","cre"),
                    email="mollieebrooks@gmail.com"))
 Description: Fit selectivity models in R. The models are fit using maximum
     likelihood estimation via 'TMB' (Template Model Builder). Random effects are
@@ -33,9 +25,6 @@ Suggests:
     ggplot2,
     mlmRev,
     bbmle,
-    pscl,
-    MCMCpack,
-    coda,
     reshape2
 VignetteBuilder: knitr
 URL: https://github.com/mebrooks/selfisher
@@ -44,13 +33,6 @@ BugReports: https://github.com/mebrooks/selfisher/issues
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
 Packaged: 2016-10-19 01:02:29 UTC; bolker
-Author: Arni Magnusson [aut],
-    Hans Skaug [aut],
-    Anders Nielsen [aut],
-    Casper Berg [aut],
-    Kasper Kristensen [aut],
-    Martin Maechler [aut],
-    Koen van Bentham [aut],
-    Ben Bolker [aut],
+Author: 
     Mollie Brooks [aut, cre]
 Maintainer: Mollie Brooks <mollieebrooks@gmail.com>
