@@ -12,8 +12,9 @@
 ##' @return a named, numeric vector of fixed-effects estimates.
 ##' @keywords models
 ##' @examples
-##' data(sleepstudy, package = "lme4")
-##' fixef(selfisher(Reaction ~ Days + (1|Subject) + (0+Days|Subject), sleepstudy))
+##' data(haddock)
+##' dat=transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+##' fixef(selfisher(prop~Lengths, p=~1, total=tot, dat))
 ##' @importFrom nlme fixef
 ##' @export fixef
 ##' @export
@@ -802,8 +803,9 @@ simulate.selfisher<-function(object, nsim=1, seed=NULL, ...){
 }
 
 ##' refit the same model to a new response
+##' @method refit selfisher
 ##' @param object a fitted \code{selfisher} object
-##' @param newdata
+##' @param newdata a data set with the same predictors used in the model
 ##' @importFrom lme4 refit
 ##' @export
 refit.selfisher <- function(object, newdata, ...) {
@@ -813,15 +815,14 @@ refit.selfisher <- function(object, newdata, ...) {
 }
 
 ##' read in data from a single haul
-##' the name of the file where the data is stored is paste0(name, x, extension)
-##' @param name
+##' @param name part of the file name that stays the same
 ##' @param x possibly a number or other indicator of the unique haul
-##' @param extension
+##' @param extension what type of file is it
 ##' @param raising name of raising factor if there is one e.g. "RAISING_FACTOR"
 ##' @param sampling name of sampled fraction if there is one e.g. "SAMPLING"
+##' @details the name of the file where the data is stored is paste0(name, x, extension)
 ##' @export
 read_in_haul=function(x, name="Haul", extension=".txt", raising=NULL, sampling=NULL){
-
   y=read.table(paste0(name, x, extension), header=TRUE, fill=TRUE)
   lengths=subset(y, !is.na(as.numeric(as.character(y$LENGTH)))) #length data
   lengths$LENGTH=as.numeric(as.character(lengths$LENGTH))

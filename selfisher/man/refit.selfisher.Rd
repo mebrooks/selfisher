@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{object}{a fitted \code{selfisher} object}
+
+\item{newdata}{a data set with the same predictors used in the model}
 }
 \description{
 refit the same model to a new response

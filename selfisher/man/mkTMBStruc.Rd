@@ -4,9 +4,9 @@
 \alias{mkTMBStruc}
 \title{Extract info from formulas, reTrms, etc., format for TMB}
 \usage{
-mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, total, family, link_char,
-  cover, Lp, pPredictCode = "selection", doPredict = 0,
-  whichPredict = integer(0), x0 = NULL)
+mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total, family,
+  link_char, cover, Lp, pPredictCode = "selection", doPredict = 0,
+  whichPredict = integer(0), x0 = NULL, call = NULL, respCol)
 }
 \arguments{
 \item{rformula}{selectivity formula}
@@ -14,6 +14,8 @@ mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, total, family, link_char,
 \item{pformula}{relative fishing power formula}
 
 \item{dformula}{Richards delta parameter formula}
+
+\item{combForm}{combined formula}
 
 \item{mf}{call to model frame}
 
@@ -34,6 +36,8 @@ mkTMBStruc(rformula, pformula, dformula, mf, fr, yobs, total, family, link_char,
 \item{whichPredict}{which observations in model frame represent predictions}
 
 \item{x0}{vector of initial values for the size selectivity model}
+
+\item{respCol}{response column}
 
 \item{link}{character}
 }

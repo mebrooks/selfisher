@@ -2,8 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{read_in_haul}
 \alias{read_in_haul}
-\title{read in data from a single haul
-the name of the file where the data is stored is paste0(name, x, extension)}
+\title{read in data from a single haul}
 \usage{
 read_in_haul(x, name = "Haul", extension = ".txt", raising = NULL,
   sampling = NULL)
@@ -11,12 +10,18 @@ read_in_haul(x, name = "Haul", extension = ".txt", raising = NULL,
 \arguments{
 \item{x}{possibly a number or other indicator of the unique haul}
 
+\item{name}{part of the file name that stays the same}
+
+\item{extension}{what type of file is it}
+
 \item{raising}{name of raising factor if there is one e.g. "RAISING_FACTOR"}
 
 \item{sampling}{name of sampled fraction if there is one e.g. "SAMPLING"}
 }
 \description{
 read in data from a single haul
+}
+\details{
 the name of the file where the data is stored is paste0(name, x, extension)
 }
 

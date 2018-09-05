@@ -58,4 +58,9 @@ Fit gear selectivity models with TMB
 \item Use \code{getCapabilities()} to see options for links and RE
 }
 }
+\examples{
+dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+m0 <- selfisher(prop~Lengths, p=~0, total=tot, dat)
+m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
+}
 

@@ -31,4 +31,11 @@ used internally for debugging?}
 \description{
 prediction
 }
+\examples{
+data(haddock)
+dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
+nd <- data.frame(Lengths=20:50, tot=100)
+predict(m1, newdata=nd, se.fit=TRUE)
+}
 
