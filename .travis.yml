@@ -31,6 +31,7 @@ script:
   - |
     travis_wait 59 R CMD build .
     travis_wait 59 R CMD check selfisher*tar.gz
+    
 after_script:
   - tar -ztvf selfisher_*.tar.gz
   - echo ${NOT_CRAN}
