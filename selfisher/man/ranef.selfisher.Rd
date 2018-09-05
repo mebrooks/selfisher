@@ -31,15 +31,8 @@ When a model has no zero inflation, the default behavior of
   simplify=FALSE)}. In all cases, the full list structure is used to access
   the data frames (see example).
 }
-\examples{
-data(sleepstudy, package="lme4")
-model <- selfisher(Reaction ~ Days + (1|Subject), sleepstudy)
-ranef(model)
-print(ranef(model), simplify=FALSE)
-ranef(model)$conditional_model$Subject
-
-}
 \seealso{
 \code{\link{fixef.selfisher}}.
+##'
 }
 
