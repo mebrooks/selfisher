@@ -20,6 +20,7 @@ LinkingTo: TMB, RcppEigen
 Suggests:
     knitr,
     testthat,
+    roxygen2,
     MASS,
     lattice,
     ggplot2,
