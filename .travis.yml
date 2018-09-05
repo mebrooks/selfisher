@@ -30,7 +30,7 @@ before_install:
 script:
   - |
     travis_wait 59 R CMD build .
-    travis_wait 59 R CMD check selfisher*tar.gz
+    travis_wait 59 make test
     
 after_script:
   - tar -ztvf selfisher_*.tar.gz
