@@ -78,14 +78,7 @@ print.fixef.selfisher <- function(x, digits = max(3, getOption("digits") - 3), .
 ##'   the data frames (see example).
 ##'
 ##' @seealso \code{\link{fixef.selfisher}}.
-##'
-##' @examples
-##' data(sleepstudy, package="lme4")
-##' model <- selfisher(Reaction ~ Days + (1|Subject), sleepstudy)
-##' ranef(model)
-##' print(ranef(model), simplify=FALSE)
-##' ranef(model)$conditional_model$Subject
-##'
+##'##'
 ##' @aliases ranef ranef.selfisher
 ##' @importFrom nlme ranef
 ##' @export ranef
