@@ -22,6 +22,3 @@ test_that("Default is cover=FALSE and estimate psplit", {
 	expect_is(m1, "selfisher")
 })
 	
-
-context("summary")
-expect_equal()
