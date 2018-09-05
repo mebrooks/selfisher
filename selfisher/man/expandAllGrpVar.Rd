@@ -12,12 +12,5 @@ expandAllGrpVar(bb)
 \description{
 Modeled after lme4:::expandSlash, by Doug Bates
 }
-\examples{
-ff <- glmmTMB:::fbx(y~1+(x|f/g))
-glmmTMB:::expandAllGrpVar(ff)
-glmmTMB:::expandAllGrpVar(quote(1|(f/g)/h))
-glmmTMB:::expandAllGrpVar(quote(1|f/g/h))
-glmmTMB:::expandAllGrpVar(quote(1|f*g))
-}
 \keyword{internal}
 

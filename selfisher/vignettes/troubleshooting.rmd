@@ -1,5 +1,5 @@
 ---
-title: "Troubleshooting with glmmTMB"
+title: "Troubleshooting with selfisher"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -22,7 +22,11 @@ The contents will expand with experience.
 This often occurs when a model is overparameterized (i.e. the data does not contain information to estimate the parameters).
 Plotting the data against potential covariates should help to avoid fitting unreasonable models that don't converge.
 
-In some cases, scaling predictor variables may help.
+Scaling predictor variables may help.
+```{r scale}
+m0=selfisher(nwide/(nfine+nwide)~scale(Lengths), total=nfine+nwide, haddock)
+```
+
 
 Models with non-positive definite Hessian matricies should be excluded from further consideration, in general.  
 

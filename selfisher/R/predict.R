@@ -12,7 +12,11 @@
 ##' @param allow.new.levels (not yet implemented) allow previously unobserved levels in random-effects grouping variables?
 ##' @param \dots unused - for method compatibility
 
-##' @examples
+##' @examples data(haddock)
+##' dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+##' m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
+##' nd <- data.frame(Lengths=20:50, tot=100)
+##' predict(m1, newdata=nd, se.fit=TRUE)
 ##' @importFrom TMB sdreport
 ##' @importFrom stats optimHess
 ##' @export

@@ -124,7 +124,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
 ##' Assuming catchability of length 0 indivs is near 0
 ##' @param link character
 interceptinit <- function(link) {
-  r0 = 1e-5
+  r0 = 1e-10
   switch(link,
          "logit"    = log(r0/(1-r0)),
          "probit"   = qnorm(r0),
@@ -374,6 +374,9 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @importFrom stats update
 ##' @export
 ##' @examples
+##' dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+##' m0 <- selfisher(prop~Lengths, p=~0, total=tot, dat)
+##' m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
 selfisher <- function (
     rformula,
     data = NULL,
@@ -557,7 +560,7 @@ llikAIC <- function(object) {
     llik <- logLik(object)
     AICstats <-
         c(AIC = AIC(llik), BIC = BIC(llik), logLik = c(llik),
-          deviance = sum((residuals(object,type="deviance"))^2),
+          deviance = sum(na.omit((residuals(object,type="deviance"))^2)),
           Pearson.ChiSq=sum((residuals(object,type="pearson"))^2),
           df.resid = df.residual(object))
     list(logLik = llik, AICtab = AICstats)

@@ -1,0 +1,46 @@
+---
+title: "Simple catch comparison"
+author: "Mollie Brooks"
+date: "8/30/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Preliminaries
+```{r libs}
+library(selfisher)
+library(bbmle) #for AICtab
+```
+
+A simple haddock data set is distributed with the package.
+```{r dat}
+data(haddock)
+head(haddock)
+dat=transform(haddock, 
+              tot=nfine+nwide, 
+              prop=nwide/(nfine+nwide))
+```
+
+#Models
+First try a model that assumes psplit=0.5.
+```{r mod0}
+m0=selfisher(prop~Lengths, p=~0, total=tot, dat)
+```
+
+then a model that estimates psplit...
+```{r mod1}
+m1=selfisher(prop~Lengths, p=~1, total=tot, dat)
+```
+
+Then we can compare them.
+```{r aic}
+AICtab(m0, m1)
+```
+
+#Plot residuals
+```{r pred}
+plot(dat$Length, residuals(m1, type="deviance"), type='h', ylim=c(-1,2))
+abline(0,0)
+```
