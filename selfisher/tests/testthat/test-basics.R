@@ -21,4 +21,7 @@ test_that("Default is cover=FALSE and estimate psplit", {
 	expect_is(m0, "selfisher")
 	expect_is(m1, "selfisher")
 })
-	
+
+test_that("AICtab is working", {
+  expect_equal(unname(summary(m0)$AICtab), c(119.94059, 122.29669, -57.97029, 36.02903,  34.68329, 22.00000), tol=1e-3)
+})
