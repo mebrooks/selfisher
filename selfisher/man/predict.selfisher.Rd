@@ -4,9 +4,9 @@
 \alias{predict.selfisher}
 \title{prediction}
 \usage{
-\method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE, re.form,
-  allow.new.levels = FALSE, type = c("response", "selection", "prob"),
-  debug = FALSE, ...)
+\method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE,
+  re.form, allow.new.levels = FALSE, type = c("response", "selection",
+  "prob", "ratio"), debug = FALSE, ...)
 }
 \arguments{
 \item{object}{a \code{selfisher} object}
@@ -19,9 +19,12 @@
 
 \item{allow.new.levels}{(not yet implemented) allow previously unobserved levels in random-effects grouping variables?}
 
-\item{type}{return expected value ("response": pr/(pr+1-p)),
-the  predicted selection curve ("selection": r),
-or the relative fishing power of the test gear ("prob")?}
+\item{type}{\itemize{
+\item return expected value ("response": pr/(pr+1-p)),
+\item predicted selection curve ("selection": r),
+\item relative fishing power of the test gear ("prob"),
+\item Catch ratio from catch comparison models ("ratio": r/(1-r)).
+}}
 
 \item{debug}{(logical) return the \code{TMBStruc} object that will be
 used internally for debugging?}
@@ -38,4 +41,3 @@ m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
 nd <- data.frame(Lengths=20:50, tot=100)
 predict(m1, newdata=nd, se.fit=TRUE)
 }
-

@@ -5,9 +5,10 @@
 \title{Fit gear selectivity models with TMB}
 \usage{
 selfisher(rformula, data = NULL, pformula = ~1, dformula = ~1,
-  cover = FALSE, x0 = NULL, link = "logit", total = NULL, haul = NULL,
-  offset = NULL, Lp = "basic", se = TRUE, verbose = FALSE,
-  debug = FALSE, optControl = list(iter.max = 300, eval.max = 400))
+  cover = FALSE, x0 = NULL, link = "logit", total = NULL,
+  haul = NULL, offset = NULL, Lp = "basic", se = TRUE,
+  verbose = FALSE, debug = FALSE, optControl = list(iter.max = 300,
+  eval.max = 400))
 }
 \arguments{
 \item{rformula}{combined fixed and random effects formula for the selectivity model, following lme4
@@ -63,4 +64,3 @@ dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
 m0 <- selfisher(prop~Lengths, p=~0, total=tot, dat)
 m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
 }
-
