@@ -7,8 +7,7 @@ dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
 
 context("Very basic selfisher fitting")
 m0 <- selfisher(prop~Lengths, p=~0, total=tot, dat)
-#m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
-m1=m0
+m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
 m2 <- selfisher(prop~Lengths, total=tot, dat, cover=FALSE)
 
 test_that("Fixed psplit=0.5", {
