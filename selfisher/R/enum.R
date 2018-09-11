@@ -23,5 +23,6 @@
 .valid_ppredictcode <- c(
   response = 0,
   selection = 1,
-  prob = 2
+  prob = 2,
+  ratio = 3
 )

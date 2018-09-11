@@ -103,7 +103,8 @@ enum valid_covStruct {
 enum valid_ppredictCode {
   response_ppredictcode = 0,
   selection_ppredictcode = 1,
-  prob_ppredictcode = 2
+  prob_ppredictcode = 2,
+  ratio_ppredictcode = 3
 };
 
 template<class Type>
@@ -607,6 +608,10 @@ Type objective_function<Type>::operator() ()
     break;
   case prob_ppredictcode:
     r = invlogit(etap); // Predict relative fishing power
+    break;
+  case ratio_ppredictcode:
+    for (int i = 0; i < r.size(); i++)
+      r(i) = inverse_linkfun(etar(i), etad(i), link)/(1-inverse_linkfun(etar(i), etad(i), link));
     break;
   default:
     error("Invalid 'PredictCode'");
