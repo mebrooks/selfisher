@@ -3,9 +3,12 @@
 ##' @param newdata new data for prediction
 ##' @param se.fit return the standard errors of the predicted values?
 ##' @param type
-##' return expected value ("response": pr/(pr+1-p)),
-##' the  predicted selection curve ("selection": r),
-##' or the relative fishing power of the test gear ("prob")?
+##' \itemize{
+##' \item return expected value ("response": pr/(pr+1-p)),
+##' \item predicted selection curve ("selection": r),
+##' \item relative fishing power of the test gear ("prob"),
+##' \item Catch ratio from catch comparison models ("ratio": r/(1-r)).
+##' }
 ##' @param debug (logical) return the \code{TMBStruc} object that will be
 ##' used internally for debugging?
 ##' @param re.form (not yet implemented) specify which random effects to condition on when predicting
@@ -23,7 +26,7 @@
 predict.selfisher <- function(object,newdata=NULL,
                             se.fit=FALSE,
                             re.form, allow.new.levels=FALSE,
-                            type = c("response","selection","prob"),
+                            type = c("response","selection","prob", "ratio"),
                             debug=FALSE,
                             ...)
 {
@@ -81,6 +84,7 @@ predict.selfisher <- function(object,newdata=NULL,
                        response="response",
                        selection="selection",
                        prob="prob",
+                       ratio="ratio",
                        stop("unknown type ",type))
   PredCode <- .valid_ppredictcode[PredNm]
 
