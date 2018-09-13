@@ -157,6 +157,33 @@ Type inverse_linkfun(Type eta, Type etad, int link) {
   return ans;
 }
 
+/* logit transformed inverse_linkfun without losing too much
+ accuracy */
+template<class Type>
+Type logit_inverse_linkfun(Type eta, Type etad, int link) {
+  Type ans;
+  switch (link) {
+  case logit_link:
+    ans = eta;
+    break;
+  case probit_link:
+    ans = selfisher::logit_pnorm(eta);
+    break;
+  case cloglog_link:
+    ans = selfisher::logit_invcloglog(eta);
+    break;
+  case loglog_link:
+    ans = -exp(-eta)-logspace_sub(Type(0), -exp(-eta));
+    break;
+  case richards_link:
+    ans = (eta- logspace_add(Type(0), eta))/exp(etad) -
+      logspace_sub(Type(0), (eta- logspace_add(Type(0), eta))/exp(etad));
+    break;
+  default:
+    ans = logit( inverse_linkfun(eta, etad, link) );
+  } // End switch
+  return ans;
+}
 //template<class Type>
 //Type logit_phifun(Type etar, Type etad, Type etap, int link, int cover) {
 //  Type logit_phi;
@@ -191,27 +218,6 @@ Type inverse_linkfun(Type eta, Type etad, int link) {
 //  }
 //	return phi;
 //}
-
-/* logit transformed inverse_linkfun without losing too much
-   accuracy */
-template<class Type>
-Type logit_inverse_linkfun(Type eta, Type etad, int link) {
-  Type ans;
-  switch (link) {
-  case logit_link:
-    ans = eta;
-    break;
-  case probit_link:
-    ans = selfisher::logit_pnorm(eta);
-    break;
-  case cloglog_link:
-    ans = selfisher::logit_invcloglog(eta);
-    break;
-  default:
-    ans = logit( inverse_linkfun(eta, etad, link) );
-  } // End switch
-  return ans;
-}
 
 template <class Type>
 struct per_term_info {
@@ -548,7 +554,7 @@ Type objective_function<Type>::operator() ()
     //phi=p*r/(p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
     logit_phi = log(p) + log(r) - log(Type(1.0)-p);
   } else { //cover=1 covered codend
-    logit_phi = log(r) - log(Type(1.0)-r);
+    logit_phi = logit_inverse_linkfun(etar,  etad, link); //logit(r)
     //phi=r;
   }
 
