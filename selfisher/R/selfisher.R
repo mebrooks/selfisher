@@ -629,7 +629,7 @@ summary.selfisher <- function(object,...)
     #If the model is simple, extract Lp and SR
 #    if(all(names(object$fit$par)=="betar")) {
 
-    if("SR" %in% rownames(summary(object$sdr, "report"))) {
+    if("SR" %in% rownames(summary(object$sdr))) {
       SR <- summary(object$sdr, "report")["SR",]
       retention <- data.frame(p=object$obj$report()$retp,
             Lp.Est=summary(object$sdr, "report")[1:length(object$obj$report()$retp),1],
