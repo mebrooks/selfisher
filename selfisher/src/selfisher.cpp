@@ -554,7 +554,9 @@ Type objective_function<Type>::operator() ()
     //phi=p*r/(p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
     logit_phi = log(p) + log(r) - log(Type(1.0)-p);
   } else { //cover=1 covered codend
-    logit_phi = logit_inverse_linkfun(etar,  etad, link); //logit(r)
+      for (int i = 0; i < r.size(); i++) {
+        logit_phi(i) = logit_inverse_linkfun(etar(i),  etad(i), link); //logit(r)
+      }
     //phi=r;
   }
 
