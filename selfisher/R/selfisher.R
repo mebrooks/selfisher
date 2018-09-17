@@ -9,7 +9,7 @@
 ##' @param respCol response column
 ##' @param total total
 ##' @param link character
-##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)
+##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
 ##' @param Lp controls calculation of length (L) at retention prob (p)
 ##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
@@ -21,7 +21,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                        combForm,
                        mf, fr,
                        yobs, total,
-                       family, link_char, cover, Lp,
+                       family, link_char, psplit, Lp,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0),
@@ -38,8 +38,8 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     betap_init <- 0 #logit(.5) #p always has logit link
     mapArg <- c(mapArg, list(betap = factor(NA))) ## Fix betap
   }
-  if(cover) {
-    pformula[] <- ~0 #no p in cover models
+  if(!psplit) {
+    pformula[] <- ~0
   }
 
   rList  <- getXReTrms(rformula, mf, fr)
@@ -85,7 +85,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     pPredictCode = .valid_ppredictcode[pPredictCode],
     doPredict = doPredict,
     Lpflag = Lpflag,
-    cover = as.numeric(cover),
+    psplit = as.numeric(psplit),
     whichPredict = whichPredict
   )
   getVal <- function(obj, component)
@@ -345,7 +345,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param link A character indicating the link function for the selectivity model.
 ##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
-##' @param cover (logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)
+##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
 ##' @param x0 vector of initial values for the size selectivity model
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
@@ -375,14 +375,14 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @export
 ##' @examples
 ##' dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-##' m0 <- selfisher(prop~Lengths, p=~0, total=tot, dat)
-##' m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
+##' m0 <- selfisher(prop~Lengths, p=~0, psplit=TRUE, total=tot, dat)
+##' m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
 selfisher <- function (
     rformula,
     data = NULL,
     pformula = ~1,
     dformula = ~1,
-    cover = FALSE,
+    psplit = FALSE,
     x0 = NULL,
     link = "logit",
     total=NULL,
@@ -427,7 +427,7 @@ selfisher <- function (
     environment(dformula) <- environment(rformula)
     call$dformula <- dformula
 
-    call$cover <- cover
+    call$psplit <- psplit
 
     if(link!="richards") dformula[] <- ~0
 
@@ -491,7 +491,7 @@ selfisher <- function (
                    combForm = combForm,
                    mf=mf, fr=fr,
                    yobs=y, total=total,
-                   family=familyStr, link_char=link, cover=cover, x0=x0, Lp=Lp,
+                   family=familyStr, link_char=link, psplit=psplit, x0=x0, Lp=Lp,
                    call=call, respCol=respCol)
 
     ## short-circuit
@@ -536,7 +536,7 @@ selfisher <- function (
     }
 
     modelInfo <- with(TMBStruc,
-                      namedList(nobs, respCol, grpVar, familyStr, family, link, cover,
+                      namedList(nobs, respCol, grpVar, familyStr, family, link, psplit,
                                 ## FIXME:apply condList -> cond earlier?
                                 reTrms = lapply(list(r=rList, p=pList),
                                                 stripReTrms),

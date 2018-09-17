@@ -5,7 +5,7 @@
 \title{Extract info from formulas, reTrms, etc., format for TMB}
 \usage{
 mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total, family,
-  link_char, cover, Lp, pPredictCode = "selection", doPredict = 0,
+  link_char, psplit, Lp, pPredictCode = "selection", doPredict = 0,
   whichPredict = integer(0), x0 = NULL, call = NULL, respCol)
 }
 \arguments{
@@ -25,7 +25,7 @@ mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total, family,
 
 \item{total}{total}
 
-\item{cover}{(logical) covered codend model (i.e. big fish go in experimental net and small fish go in covered codend)}
+\item{psplit}{(logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.}
 
 \item{Lp}{controls calculation of length (L) at retention prob (p)}
 

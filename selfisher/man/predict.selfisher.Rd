@@ -4,9 +4,9 @@
 \alias{predict.selfisher}
 \title{prediction}
 \usage{
-\method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE,
-  re.form, allow.new.levels = FALSE, type = c("response", "selection",
-  "prob", "ratio"), debug = FALSE, ...)
+\method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE, re.form,
+  allow.new.levels = FALSE, type = c("response", "selection", "prob",
+  "ratio"), debug = FALSE, ...)
 }
 \arguments{
 \item{object}{a \code{selfisher} object}
@@ -41,3 +41,4 @@ m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
 nd <- data.frame(Lengths=20:50, tot=100)
 predict(m1, newdata=nd, se.fit=TRUE)
 }
+

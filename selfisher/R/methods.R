@@ -317,7 +317,7 @@ cat.f <- function(...) cat(..., fill = TRUE)
         pass<-nchar(deparse(rhs))
     }
   }
-  if(!identical(cc <- deparse(call$pformula),"~0") & !call$cover)
+  if(!identical(cc <- deparse(call$pformula),"~0") & call$psplit)
     cat.f("Relative fishing power formula:  ",rep(' ',pass+2), cc, sep='')
   if(!identical(cc <- deparse(call$dformula),"~1"))
     cat.f("Richards exponent:      ",rep(' ',pass+2), cc, sep='')

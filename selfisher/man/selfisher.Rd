@@ -5,7 +5,7 @@
 \title{Fit gear selectivity models with TMB}
 \usage{
 selfisher(rformula, data = NULL, pformula = ~1, dformula = ~1,
-  cover = FALSE, x0 = NULL, link = "logit", total = NULL,
+  psplit = FALSE, x0 = NULL, link = "logit", total = NULL,
   haul = NULL, offset = NULL, Lp = "basic", se = TRUE,
   verbose = FALSE, debug = FALSE, optControl = list(iter.max = 300,
   eval.max = 400))
@@ -23,7 +23,7 @@ The relative fishing power model uses a logit link.}
 
 \item{dformula}{a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.}
 
-\item{cover}{(logical) covered codend model (i.e. big fish go in experimental net and small fish go in cover)}
+\item{psplit}{(logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.}
 
 \item{x0}{vector of initial values for the size selectivity model}
 
@@ -61,6 +61,7 @@ Fit gear selectivity models with TMB
 }
 \examples{
 dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-m0 <- selfisher(prop~Lengths, p=~0, total=tot, dat)
-m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
+m0 <- selfisher(prop~Lengths, p=~0, psplit=TRUE, total=tot, dat)
+m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
 }
+

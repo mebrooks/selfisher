@@ -184,40 +184,6 @@ Type logit_inverse_linkfun(Type eta, Type etad, int link) {
   } // End switch
   return ans;
 }
-//template<class Type>
-//Type logit_phifun(Type etar, Type etad, Type etap, int link, int cover) {
-//  Type logit_phi;
-//  if(!cover) { //trowser-trawl
-//    Type p=invlogit(etap);
-//    if(link==logit_link) {
-//      logit_phi = log(p) + etar - log(1-p+exp(etar)-p*exp(etar));
-//    } else {
-//      Type r = inverse_linkfun(etar, etad, link);
-//      logit_phi = log(p) + log(r) - log(Type(1.0)-p);
-//    }
-//  } else { //cover=1 covered codend
-//    Type r = inverse_linkfun(etar, etad, link);
-//    logit_phi = log(r) - log(Type(1.0)-r);
-//  }
-//	return logit_phi;
-//}
-
-//template<class Type>
-//Type phifun(Type etar, Type etad, Type etap, int link, int cover) {
-//  Type phi;
-//  if(!cover) { //trowser-trawl
-//    Type p=invlogit(etap);
-//    if(link==logit_link) {
-//      phi = p*exp(etar) /(1-p+exp(etar));
-//    } else {
-//      Type r = inverse_linkfun(etar, etad, link);
-//      phi = invlogit(log(p) + log(r) - log(Type(1.0)-p));
-//    }
-//  } else { //cover=1 covered codend
-//      phi = inverse_linkfun(etar, etad, link);
-//  }
-//	return phi;
-//}
 
 template <class Type>
 struct per_term_info {
@@ -525,7 +491,7 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(doPredict);
 //  DATA_INTEGER(Lindex);
   DATA_INTEGER(Lpflag);
-  DATA_INTEGER(cover);
+  DATA_INTEGER(psplit);
   DATA_IVECTOR(whichPredict);
 
   // Joint negative log-likelihood
@@ -549,11 +515,11 @@ Type objective_function<Type>::operator() ()
   //vector<Type> phi(r.size());
   vector<Type> logit_phi(r.size());
   vector<Type> p(etap.size());
-  if(!cover) { //trowser-trawl, alternate haul, catch comparison
+  if(psplit) { //trowser-trawl or alternate haul
     p = invlogit(etap);
     //phi=p*r/(p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
     logit_phi = log(p) + log(r) - log(Type(1.0)-p);
-  } else { //cover=1 covered codend
+  } else { //covered codend or catch comparison
       for (int i = 0; i < r.size(); i++) {
         logit_phi(i) = logit_inverse_linkfun(etar(i),  etad(i), link); //logit(r)
       }
@@ -563,7 +529,7 @@ Type objective_function<Type>::operator() ()
 //  //Calculate binomial probability parameter (phi)
 //  vector<Type> phi(yobs.size());
 //  for (int i = 0; i < yobs.size(); i++)
-//    phi(i) = phifun(etar(i), etad(i), etap(i), link, cover);
+//    phi(i) = phifun(etar(i), etad(i), etap(i), link, psplit);
 
   // Observation likelihood
   for (int i=0; i < yobs.size(); i++){
