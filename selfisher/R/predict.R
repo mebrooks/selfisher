@@ -1,3 +1,55 @@
+## Helper function for predict.
+## Assert that we can use old model (data.tmb0) as basis for
+## predictions using the new data (data.tmb1):
+assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE)
+{
+  ## Check terms. Only 'blockReps' and 'blockSize' are allowed to
+  ## change.  Note that we allow e.g. spatial covariance matrices to
+  ## change, while e.g. an unstrucured covariance must remain the
+  ## same.
+  checkTerms <- function(t1, t0) {
+    ## Defensive check:
+    stopifnot(identical(names(t1), names(t0)))
+    ## *Never* allowed to differ:
+    testIdentical <- function(checkNm) {
+      unlist( Map( function(x,y)
+        identical(x[checkNm], y[checkNm]), t0, t1) )
+    }
+    ok <- testIdentical( c("blockNumTheta", "blockCode") )
+    if ( ! all(ok) ) {
+      msg <- c("Prediction is not possible for terms: ",
+               paste(names(t1)[!ok], collapse=", "), "\n",
+               "Probably some factor levels in 'newdata' require fitting a new model.")
+      stop(msg)
+    }
+    ## Sometimes allowed to differ:
+    if ( ! allow.new.levels ) {
+      ok <- testIdentical( c( "blockReps", "blockSize") )
+      if ( ! all(ok) ) {
+        msg <- c("Predicting new random effect levels for terms: ",
+                 paste(names(t1)[!ok], collapse=", "), "\n",
+                 "Disable this warning with 'allow.new.levels=TRUE'")
+        ## FIXME: warning or error ?
+        warning(msg)
+      }
+    }
+  }
+  checkTerms( data.tmb1$termsr,   data.tmb0$termsr )
+  checkTerms( data.tmb1$termsp, data.tmb0$termsp )
+  ## Fixed effect parameters must be identical
+  checkModelMatrix <- function(X1, X0) {
+    if( !identical(colnames(X1), colnames(X0)) ) {
+      msg <- c("Prediction is not possible for unknown fixed effects: ",
+               paste( setdiff(colnames(X1), colnames(X0)), collapse=", "), "\n",
+               "Probably some factor levels in 'newdata' require fitting a new model.")
+      stop(msg)
+    }
+  }
+  checkModelMatrix(data.tmb1$Xr, data.tmb0$Xr)
+  checkModelMatrix(data.tmb1$Xp, data.tmb0$Xp)
+  NULL
+}
+
 ##' prediction
 ##' @param object a \code{selfisher} object
 ##' @param newdata new data for prediction
@@ -109,6 +161,21 @@ predict.selfisher <- function(object,newdata=NULL,
 
   ## short-circuit
   if(debug) return(TMBStruc)
+
+  ## Check that the model specification is unchanged:
+  assertIdenticalModels(TMBStruc$data.tmb,
+                        object$obj$env$data, allow.new.levels)
+
+  ## Check that the neccessary predictor variables are finite (not NA nor NaN)
+  if(se.fit) {
+    with(TMBStruc$data.tmb, if(any(!is.finite(Xr)) |
+                               any(!is.finite(Zr@x)) |
+                               any(!is.finite(Xp)) |
+                               any(!is.finite(Zp@x)) |
+                               any(!is.finite(Xd))
+    ) stop("Some variables in newdata needed for predictions contain NAs or NaNs.
+           This is currently incompatible with se.fit=TRUE."))
+  }
 
   newObj <- with(TMBStruc,
                  MakeADFun(data.tmb,
