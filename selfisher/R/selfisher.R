@@ -199,7 +199,7 @@ getXReTrms <- function(formula, mf, fr, ranOK=TRUE, type="") {
     RHSForm(ranform) <- subbars(RHSForm(reOnly(formula)))
 
     mf$formula <- ranform
-    reTrms <- mkReTrms(findbars(RHSForm(formula)), fr)
+    reTrms <- mkReTrms(findbars(RHSForm(formula)), fr, reorder.terms=FALSE)
 
     ss <- splitForm(formula)
     ss <- unlist(ss$reTrmClasses)
