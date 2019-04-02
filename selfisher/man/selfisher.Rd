@@ -28,7 +28,7 @@ The relative fishing power model uses a logit link.}
 \item{x0}{vector of initial values for the size selectivity model}
 
 \item{link}{A character indicating the link function for the selectivity model.
-\code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "richards"}
+\code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "Richards"}
 
 \item{total}{The number of total fish caught in the test and control gear.}
 
@@ -64,4 +64,3 @@ dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
 m0 <- selfisher(prop~Lengths, p=~0, psplit=TRUE, total=tot, dat)
 m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
 }
-

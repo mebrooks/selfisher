@@ -31,7 +31,7 @@ VignetteBuilder: knitr
 URL: https://github.com/mebrooks/selfisher
 LazyData: TRUE
 BugReports: https://github.com/mebrooks/selfisher/issues
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.1
 NeedsCompilation: yes
 Packaged: 2016-10-19 01:02:29 UTC; bolker
 Author: 

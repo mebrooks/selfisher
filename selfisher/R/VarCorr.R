@@ -22,10 +22,10 @@ getParList <- function(object) {
 ##' @param object a \dQuote{selfisher} fitted object
 ##' @param \dots (ignored; for method compatibility)
 ##' @export
-richardsdelta <- function(object, ...) {
+Richardsdelta <- function(object, ...) {
     pl <- getParList(object)
     ff <- object$modelInfo$link
-    if (ff=="richards") return(exp(pl$betad))
+    if (ff=="Richards") return(exp(pl$betad))
     else return(1)
 }
 
@@ -103,7 +103,7 @@ VarCorr.selfisher <- function(x, sigma = 1, ... )
         mkVC(cor = xrep$corrp, sd = xrep$sdp, cnms = cn,
              sc = sigma, useSc = useSc)
     structure(list(r = vc.r, p = vc.p),
-	      sc = (x$modelInfo$family$link=="richards"), ## 'useScale'
+	      sc = (x$modelInfo$family$link=="Richards"), ## 'useScale'
 	      class = "VarCorr.selfisher")
 }
 

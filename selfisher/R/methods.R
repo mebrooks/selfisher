@@ -33,9 +33,9 @@ cNames <- list(r = "Selectivity model",
 
 trivialDisp <- function(object) {
     ## This version works on summary object or fitted model object
-    object$modelInfo$family$link!="richards" ||(
+    object$modelInfo$family$link!="Richards" ||(
       identical(deparse(object$call$dformula),"~1") &
-      object$modelInfo$family$link=="richards")
+      object$modelInfo$family$link=="Richards")
 }
 trivialFixef <- function(xnm,nm) {
     length(xnm)==0 ||
@@ -405,8 +405,8 @@ print.selfisher <-
   }
   cat(do.call(paste,c(gvec,list(sep=" / "))),fill=TRUE)
 
-  if(trivialDisp(x) & x$modelInfo$link=="richards") {# if trivial print here, else below(~x) or none(~0)
-    printDispersion(richardsdelta(x))
+  if(trivialDisp(x) & x$modelInfo$link=="Richards") {# if trivial print here, else below(~x) or none(~0)
+    printDispersion(Richardsdelta(x))
   }
   ## Fixed effects:
   if(length(cf <- fixef(x)) > 0) {
@@ -606,7 +606,7 @@ confint.selfisher <- function (object, parm, level = 0.95,
         if (components.has("other")) {
             ## sigma
             ff <- object$modelInfo$family$family
-            if (object$modelInfo$link=="richards") {
+            if (object$modelInfo$link=="Richards") {
                 ci.sigma <- .CI_univariate_monotone(object,
                                                     sigma,
                                                     reduce = NULL,

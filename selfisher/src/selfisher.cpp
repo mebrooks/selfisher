@@ -85,7 +85,7 @@ enum valid_link {
   probit_link            = 1,
   cloglog_link           = 2,
   loglog_link            = 3,
-  richards_link          = 4
+  Richards_link          = 4
 };
 
 enum valid_covStruct {
@@ -123,7 +123,7 @@ Type linkfun(Type p, Type etad, int link) {
   case loglog_link:
     ans = -log(-log(p));
     break;
-  case richards_link:
+  case Richards_link:
     ans = logit(pow(p, exp(etad)));
     break;
   default:
@@ -148,7 +148,7 @@ Type inverse_linkfun(Type eta, Type etad, int link) {
   case loglog_link:
     ans = exp(-exp(-eta));
     break;
-  case richards_link:
+  case Richards_link:
     ans = pow(exp(eta)/(Type(1)+exp(eta)), Type(1)/exp(etad));
     break;
   default:
@@ -175,7 +175,7 @@ Type logit_inverse_linkfun(Type eta, Type etad, int link) {
   case loglog_link:
     ans = -exp(-eta)-logspace_sub(Type(0), -exp(-eta));
     break;
-  case richards_link:
+  case Richards_link:
     ans = (eta- logspace_add(Type(0), eta))/exp(etad) -
       logspace_sub(Type(0), (eta- logspace_add(Type(0), eta))/exp(etad));
     break;

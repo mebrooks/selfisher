@@ -108,7 +108,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                        bp       = rep(0, ncol(Zp)),
                        thetar   = rep(0, sum(getVal(rReStruc,"blockNumTheta"))),
                        thetap   = rep(0, sum(getVal(pReStruc,  "blockNumTheta"))),
-                       betad    = rep(0, ncol(Xd))# d=1 makes richards become logisitc
+                       betad    = rep(0, ncol(Xd))# d=1 makes Richards become logisitc
                     ))
   randomArg <- c(if(ncol(data.tmb$Zr) > 0) "br",
                  if(ncol(data.tmb$Zp) > 0) "bp")
@@ -130,7 +130,7 @@ interceptinit <- function(link) {
          "probit"   = qnorm(r0),
          "cloglog"  = log(-log(1-r0)),
          "loglog"   = -log(-log(r0)),
-         "richards" = log(r0/(1-r0)))
+         "Richards" = log(r0/(1-r0)))
 }
 
 ##' Create X and random effect terms from formula
@@ -343,7 +343,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \code{~0} can be used to specify equal fishing power (p=0.5).
 ##' The relative fishing power model uses a logit link.
 ##' @param link A character indicating the link function for the selectivity model.
-##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "richards"
+##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "Richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
 ##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
 ##' @param x0 vector of initial values for the size selectivity model
@@ -429,7 +429,8 @@ selfisher <- function (
 
     call$psplit <- psplit
 
-    if(link!="richards") dformula[] <- ~0
+    if(link=="richards") link="Richards"
+    if(link!="Richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
     m <- match(c("data", "subset", "total", "haul", "offset"),
@@ -593,7 +594,7 @@ summary.selfisher <- function(object,...)
         warning("additional arguments ignored")
     }
     ## figure out useSc
-    sig <- richardsdelta(object)
+    sig <- Richardsdelta(object)
 
     famL <- family(object)$family
     link <- object$modelInfo$link
@@ -682,7 +683,7 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
             .prt.grps(x$ngrps[[nn]],nobs=x$nobs)
         }
     }
-   if((x$call$dformula== ~1)&(x$link=="richards")) {# if trivial print here, else below(~x) or none(~0)
+   if((x$call$dformula== ~1)&(x$link=="Richards")) {# if trivial print here, else below(~x) or none(~0)
     printDispersion(x$delta)
    }
     for (nn in names(x$coefficients)) {

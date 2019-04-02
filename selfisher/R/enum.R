@@ -4,7 +4,7 @@
   probit            = 1,
   cloglog           = 2,
   loglog            = 3,
-  richards          = 4
+  Richards          = 4
 )
 .valid_family <- c(
   binomial = 100
