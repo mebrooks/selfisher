@@ -4,16 +4,21 @@
 \alias{mkTMBStruc}
 \title{Extract info from formulas, reTrms, etc., format for TMB}
 \usage{
-mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total, family,
-  link_char, psplit, Lp, pPredictCode = "selection", doPredict = 0,
-  whichPredict = integer(0), x0 = NULL, call = NULL, respCol)
+mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total,
+  family, link_char, psplit, Lp, pPredictCode = "selection",
+  doPredict = 0, whichPredict = integer(0), start = NULL,
+  call = NULL, respCol)
 }
 \arguments{
-\item{rformula}{selectivity formula}
+\item{rformula}{combined fixed and random effects formula for the selectivity model, following lme4
+syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.}
 
-\item{pformula}{relative fishing power formula}
+\item{pformula}{a \emph{one-sided} (i.e., no response variable) formula for
+    the ralaive fishing power of the test versus the control gear combining fixed and random effects:
+\code{~0} can be used to specify equal fishing power (p=0.5).
+The relative fishing power model uses a logit link.}
 
-\item{dformula}{Richards delta parameter formula}
+\item{dformula}{a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.}
 
 \item{combForm}{combined formula}
 
@@ -35,7 +40,7 @@ mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total, family,
 
 \item{whichPredict}{which observations in model frame represent predictions}
 
-\item{x0}{vector of initial values for the size selectivity model}
+\item{start}{vector of initial values for the size selectivity model}
 
 \item{respCol}{response column}
 
@@ -45,4 +50,3 @@ mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total, family,
 Extract info from formulas, reTrms, etc., format for TMB
 }
 \keyword{internal}
-

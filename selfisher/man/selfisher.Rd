@@ -5,7 +5,7 @@
 \title{Fit gear selectivity models with TMB}
 \usage{
 selfisher(rformula, data = NULL, pformula = ~1, dformula = ~1,
-  psplit = FALSE, x0 = NULL, link = "logit", total = NULL,
+  psplit = FALSE, start = NULL, link = "logit", total = NULL,
   haul = NULL, offset = NULL, Lp = "basic", se = TRUE,
   verbose = FALSE, debug = FALSE, optControl = list(iter.max = 300,
   eval.max = 400))
@@ -25,7 +25,12 @@ The relative fishing power model uses a logit link.}
 
 \item{psplit}{(logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.}
 
-\item{x0}{vector of initial values for the size selectivity model}
+\item{start}{starting values, expressed as a list with possible components
+\code{betar}, \code{betap}, \code{betad} (fixed-effect parameters for
+retention, psplit, Richards delta models); \code{br}, \code{bp}
+(conditional modes for retention and psplit models);
+\code{thetar}, \code{thetap} (random-effect parameters, on the
+standard deviation/Cholesky scale, for retention and psplit models);}
 
 \item{link}{A character indicating the link function for the selectivity model.
 \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "Richards"}

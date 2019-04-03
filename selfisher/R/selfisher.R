@@ -1,7 +1,5 @@
 ##' Extract info from formulas, reTrms, etc., format for TMB
-##' @param rformula selectivity formula
-##' @param pformula relative fishing power formula
-##' @param dformula Richards delta parameter formula
+##' @inheritParams selfisher
 ##' @param combForm combined formula
 ##' @param mf call to model frame
 ##' @param fr frame
@@ -14,7 +12,7 @@
 ##' @param pPredictCode relative fishing power code
 ##' @param doPredict flag to enable sds of predictions
 ##' @param whichPredict which observations in model frame represent predictions
-##' @param x0 vector of initial values for the size selectivity model
+##' @param start vector of initial values for the size selectivity model
 ##' @keywords internal
 ##' @importFrom stats model.offset
 mkTMBStruc <- function(rformula, pformula, dformula,
@@ -25,7 +23,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                        pPredictCode="selection",
                        doPredict=0,
                        whichPredict=integer(0),
-                       x0=NULL,
+                       start=NULL,
                        call=NULL,
                        respCol) {
 
@@ -91,15 +89,12 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   getVal <- function(obj, component)
     vapply(obj, function(x) x[[component]], numeric(1))
 
-  if(is.null(x0)) {
-    if(with(data.tmb,ncol(Xr))==2) {
+  if(with(data.tmb,ncol(Xr))==2) {
       betar = with(data.tmb, c(interceptinit(link_char), .3))
     } else {
       betar = with(data.tmb, c(interceptinit(link_char), rep(0, ncol(Xr)-1)))
-    }
-  } else {
-    betar = x0
   }
+
   parameters <- with(data.tmb,
                      list(
                        betar    = betar,
@@ -110,6 +105,19 @@ mkTMBStruc <- function(rformula, pformula, dformula,
                        thetap   = rep(0, sum(getVal(pReStruc,  "blockNumTheta"))),
                        betad    = rep(0, ncol(Xd))# d=1 makes Richards become logisitc
                     ))
+
+  for (p in names(start)) {
+    if (!(p %in% names(parameters))) {
+      stop(sprintf("unrecognized vector '%s' in %s",p,sQuote("start")),
+           call. = FALSE)
+    }
+    if ((lenp <- length(parameters[[p]])) !=  (lens <- length(start[[p]]))) {
+      stop(sprintf("parameter vector length mismatch: in %s, length(%s)=%d, should be %d", sQuote("start"), p, lens, lenp),
+           call. = FALSE)
+    }
+    parameters[[p]] <- start[[p]]
+  }
+
   randomArg <- c(if(ncol(data.tmb$Zr) > 0) "br",
                  if(ncol(data.tmb$Zp) > 0) "bp")
   pformula <- pformula.orig ## May have changed - restore
@@ -346,7 +354,12 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "Richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
 ##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
-##' @param x0 vector of initial values for the size selectivity model
+##' @param start starting values, expressed as a list with possible components
+##' \code{betar}, \code{betap}, \code{betad} (fixed-effect parameters for
+##' retention, psplit, Richards delta models); \code{br}, \code{bp}
+##' (conditional modes for retention and psplit models);
+##' \code{thetar}, \code{thetap} (random-effect parameters, on the
+##' standard deviation/Cholesky scale, for retention and psplit models);
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
 ##' @param haul Name of column representing different hauls. Needed for double bootstrap.
@@ -383,7 +396,7 @@ selfisher <- function (
     pformula = ~1,
     dformula = ~1,
     psplit = FALSE,
-    x0 = NULL,
+    start = NULL,
     link = "logit",
     total=NULL,
     haul=NULL,
@@ -492,7 +505,7 @@ selfisher <- function (
                    combForm = combForm,
                    mf=mf, fr=fr,
                    yobs=y, total=total,
-                   family=familyStr, link_char=link, psplit=psplit, x0=x0, Lp=Lp,
+                   family=familyStr, link_char=link, psplit=psplit, start=start, Lp=Lp,
                    call=call, respCol=respCol)
 
     ## short-circuit
