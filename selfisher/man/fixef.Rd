@@ -27,7 +27,6 @@ Extract the estimates of the fixed-effects parameters from a fitted model.
 \examples{
 data(haddock)
 dat=transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-fixef(selfisher(prop~Lengths, p=~1, total=tot, dat))
+fixef(selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat))
 }
 \keyword{models}
-

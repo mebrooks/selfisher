@@ -69,7 +69,7 @@ assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE)
 
 ##' @examples data(haddock)
 ##' dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-##' m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
+##' m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
 ##' nd <- data.frame(Lengths=20:50, tot=100)
 ##' predict(m1, newdata=nd, se.fit=TRUE)
 ##' @importFrom TMB sdreport
