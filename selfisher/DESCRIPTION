@@ -1,7 +1,7 @@
 Package: selfisher
 Title: Selectivity of Fisheries Gear, Modeled using Template Model Builder
-Version: 1.0.0
-Date: 2017-2-2
+Version: 0.1.0
+Date: 2019-4-9
 Authors@R: c(person("Mollie","Brooks",role=c("aut","cre"),
                    email="mollieebrooks@gmail.com"))
 Description: Fit selectivity models in R. The models are fit using maximum

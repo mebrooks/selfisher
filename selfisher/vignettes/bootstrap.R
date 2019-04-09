@@ -9,14 +9,14 @@ data("ccmhsdat")
 head(ccmhsdat)
 
 ## ----aggregate-----------------------------------------------------------
-sumdat=ddply(ccmhsdat, ~length+type, summarize, prop=sum(test)/sum(tot), tot=sum(tot))
+sumdat=ddply(ccmhsdat, ~length+type, summarize, prop=sum(test)/sum(total), total=sum(total))
 
 ## ----fits----------------------------------------------------------------
-mod_both=selfisher(prop~length*type, total=tot, ccmhsdat, haul=haul)
+mod_both=selfisher(prop~length*type, total=total, ccmhsdat, haul=haul)
 
 ## ----pred----------------------------------------------------------------
 newdata=expand.grid(length=unique(ccmhsdat$length),
-                tot=1,
+                total=1,
                 haul=1,
                 type=c("baseline", "stimulation"))
 
