@@ -4,9 +4,9 @@
 \alias{predict.selfisher}
 \title{prediction}
 \usage{
-\method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE, re.form,
-  allow.new.levels = FALSE, type = c("response", "selection", "prob",
-  "ratio"), debug = FALSE, ...)
+\method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE,
+  re.form, allow.new.levels = FALSE, type = c("response", "selection",
+  "prob", "ratio"), debug = FALSE, ...)
 }
 \arguments{
 \item{object}{a \code{selfisher} object}
@@ -15,7 +15,7 @@
 
 \item{se.fit}{return the standard errors of the predicted values?}
 
-\item{re.form}{(not yet implemented) specify which random effects to condition on when predicting}
+\item{re.form}{(not yet implemented) specify which random effects to condition on when predicting. For now, all random effects are included.}
 
 \item{allow.new.levels}{(not yet implemented) allow previously unobserved levels in random-effects grouping variables?}
 
@@ -34,11 +34,13 @@ used internally for debugging?}
 \description{
 prediction
 }
+\details{
+This should work with random effects, but is untested.
+}
 \examples{
 data(haddock)
 dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-m1 <- selfisher(prop~Lengths, p=~1, total=tot, dat)
+m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
 nd <- data.frame(Lengths=20:50, tot=100)
 predict(m1, newdata=nd, se.fit=TRUE)
 }
-

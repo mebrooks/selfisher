@@ -4,21 +4,21 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
-<meta name="date" content="2017-02-28" />
+<meta name="date" content="2019-04-09" />
 
-<title>Troubleshooting with glmmTMB</title>
+<title>Troubleshooting with selfisher</title>
 
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
+<style type="text/css" data-origin="pandoc">
 div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
@@ -54,7 +54,29 @@ code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
 code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+
 </style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -67,8 +89,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<h1 class="title toc-ignore">Troubleshooting with glmmTMB</h1>
-<h4 class="date"><em>2017-02-28</em></h4>
+<h1 class="title toc-ignore">Troubleshooting with selfisher</h1>
+<h4 class="date"><em>2019-04-09</em></h4>
 
 
 
@@ -78,7 +100,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="model-convergence-problem-non-positive-definite-hessian-matrix" class="section level2">
 <h2>Model convergence problem; non-positive-definite Hessian matrix</h2>
 <p>This often occurs when a model is overparameterized (i.e. the data does not contain information to estimate the parameters). Plotting the data against potential covariates should help to avoid fitting unreasonable models that don’t converge.</p>
-<p>In some cases, scaling predictor variables may help.</p>
+<p>Scaling predictor variables may help.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m0=<span class="kw">selfisher</span>(nwide<span class="op">/</span>(nfine<span class="op">+</span>nwide)<span class="op">~</span><span class="kw">scale</span>(Lengths), <span class="dt">total=</span>nfine<span class="op">+</span>nwide, haddock)</code></pre></div>
 <p>Models with non-positive definite Hessian matricies should be excluded from further consideration, in general.</p>
 </div>
 <div id="model-convergence-problem-eigen-value-problems" class="section level2">
@@ -87,12 +110,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="nanan-function-evaluation" class="section level2">
 <h2>NA/NaN function evaluation</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Warning in <span class="kw">nlminb</span>(<span class="dt">start =</span> par, <span class="dt">objective =</span> fn, <span class="dt">gradient =</span> gr) :
-<span class="st">  </span><span class="ot">NA</span>/<span class="ot">NaN</span> function evaluation</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Warning <span class="cf">in</span> <span class="kw">nlminb</span>(<span class="dt">start =</span> par, <span class="dt">objective =</span> fn, <span class="dt">gradient =</span> gr) <span class="op">:</span>
+<span class="st">  </span><span class="ot">NA</span><span class="op">/</span><span class="ot">NaN</span> <span class="cf">function</span> evaluation</code></pre></div>
 <p>This warning often occurs when the optimizer wanders into a region of parameter space that is invalid. It is not a problem as long as the optimizer has left that region of parameter space upon convergence, which is indicated by an absence of the model convergence warnings described above.</p>
 <p>The following warnings can be treated in the same way as an NA/NaN function evaluation:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Cholmod warning <span class="st">'matrix not positive definite'</span></code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Warning in <span class="kw">f</span>(par, <span class="dt">order =</span> order, ...) :<span class="st"> </span>value out of range in <span class="st">'lgamma'</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Warning <span class="cf">in</span> <span class="kw">f</span>(par, <span class="dt">order =</span> order, ...) <span class="op">:</span><span class="st"> </span>value out of range <span class="cf">in</span> <span class="st">'lgamma'</span></code></pre></div>
 </div>
 </div>
 
@@ -103,7 +126,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

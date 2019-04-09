@@ -14,7 +14,8 @@ bootSel(x, FUN = L50SR, nsim = 2, seed = NULL, type = c("double",
 
 \item{FUN}{a function taking a fitted
 \code{selfisher} object as input and returning the
-\emph{statistic} of interest, which must be a (possibly named) numeric vector.}
+\emph{statistic} of interest, which must be a (possibly named) numeric vector.
+The default (\code{FUN = L50SR}) only works with very simple models; use \code{\link{predict.selfisher}}.}
 
 \item{nsim}{number of simulations, positive integer}
 
@@ -22,7 +23,7 @@ bootSel(x, FUN = L50SR, nsim = 2, seed = NULL, type = c("double",
 
 \item{type}{character string specifying the type of
 bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (e.g. Millar 1993),
-\code{"parametric"} or \code{"nonparametric"}; partial matching is allowed.}
+\code{"parametric"} or \code{"nonparametric"}; partial matching is allowed. Only the default version has been tested.}
 }
 \description{
 Perform bootstrap
@@ -30,4 +31,3 @@ Perform bootstrap
 \details{
 the default bootstrap type "double" is specific to fisheries literature.
 }
-

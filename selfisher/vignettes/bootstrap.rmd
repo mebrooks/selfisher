@@ -1,0 +1,60 @@
+---
+title: "Bootstrapping"
+author: "Mollie Brooks"
+date: "8 April 2019"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{bootstrapping}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Read in some data that comes with the package. This data is from a covered codend experiment with two types of gear: baseline and stimulation. 
+
+```{r preliminaries}
+library(selfisher)
+library(plyr)
+library(ggplot2); theme_set(theme_bw())
+data("ccmhsdat")
+head(ccmhsdat)
+```
+
+For plotting, we aggregate the hauls.
+```{r aggregate}
+sumdat=ddply(ccmhsdat, ~length+type, summarize, prop=sum(test)/sum(tot), tot=sum(tot))
+```
+
+#Model
+```{r fits}
+mod_both=selfisher(prop~length*type, total=tot, ccmhsdat, haul=haul)
+```
+
+#Predictions
+```{r pred}
+newdata=expand.grid(length=unique(ccmhsdat$length),
+                tot=1,
+                haul=1,
+                type=c("baseline", "stimulation"))
+
+newdata$prop=predict(mod_both, newdata=newdata, type="response")
+```
+
+#Bootstrap to get CI on predictions
+```{r ci}
+bs=bootSel(mod_both, nsim=100, parallel = "multicore", ncpus = 4, FUN=function(mod){predict(mod, newdata=newdata, type="response")})
+
+quants=apply(bs$t, 2, quantile, c(0.025, 0.5, 0.975))
+newdata[,c("lo", "mid", "hi")]=t(quants)
+```
+
+#Plot predictions
+```{r plot}
+ggplot(sumdat, aes(length, prop, colour=type))+geom_point()+
+   geom_line(data=newdata)+
+   geom_ribbon(data=newdata, aes(ymin=lo, ymax=hi, fill=type), alpha=0.2)
+```
+

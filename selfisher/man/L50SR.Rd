@@ -14,4 +14,3 @@ L50SR(x)
 a function taking a fitted \code{selfisher} object as input and returning the
 L50 and SR estimates as a named numeric vector.
 }
-

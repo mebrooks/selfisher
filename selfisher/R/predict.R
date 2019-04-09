@@ -63,10 +63,10 @@ assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE)
 ##' }
 ##' @param debug (logical) return the \code{TMBStruc} object that will be
 ##' used internally for debugging?
-##' @param re.form (not yet implemented) specify which random effects to condition on when predicting
+##' @param re.form (not yet implemented) specify which random effects to condition on when predicting. For now, all random effects are included.
 ##' @param allow.new.levels (not yet implemented) allow previously unobserved levels in random-effects grouping variables?
 ##' @param \dots unused - for method compatibility
-
+##' @details This should work with random effects, but is untested.
 ##' @examples data(haddock)
 ##' dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
 ##' m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)

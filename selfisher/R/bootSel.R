@@ -13,26 +13,18 @@ L50SR <- function(x) {
 	return(c("L50"=L50,"SR"=SR))
 }
 
-##' a function taking a fitted \code{selfisher} object as input and returning the
-##' L1 to 100 (i.e. the lengths with catch probabilities 0.01 to 1.0)
-##' @param x \code{selfisher} object fitted with arugument code{Lp="100"}
-##' @export
-L100 <- function(x) {
-  L100 <- summary(x$sdr, "report")[which(x$obj$report()$retp %in% seq(0.01, 1, length.out=100)),1]
-  names(L100)=1:100
-  return(L100)
-}
 
 ##' Perform bootstrap
 ##' @param x a fitted \code{selfisher} object
 ##' @param FUN a function taking a fitted
 ##' \code{selfisher} object as input and returning the
 ##' \emph{statistic} of interest, which must be a (possibly named) numeric vector.
+##' The default (\code{FUN = L50SR}) only works with very simple models; use \code{\link{predict.selfisher}}.
 ##' @param nsim number of simulations, positive integer
 ##' @param seed optional argument to \code{\link{set.seed}}
 ##' @param type character string specifying the type of
 ##' bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (e.g. Millar 1993),
-##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed.
+##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed. Only the default version has been tested.
 ##' @details the default bootstrap type "double" is specific to fisheries literature.
 ##' @export
 bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
