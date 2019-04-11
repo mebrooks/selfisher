@@ -484,7 +484,7 @@ selfisher <- function (
     total <- as.vector(model.total(fr))
 
     if(is.null(total)) {
-      stop("The total number of fish caught in the test and control gear must be specified using 'total' argument.")
+      stop("The total number of fish used to calculate the proportion (i.e the response variable) must be specified using 'total' argument.")
     }
 
     ## sanity checks (skipped!)
