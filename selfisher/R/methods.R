@@ -112,7 +112,7 @@ ranef.selfisher <- function(object, ...) {
   }
 
   pl <- getParList(object)
-  structure(list(r = arrange(pl$b, "r"),
+  structure(list(r = arrange(pl$br, "r"),
                  p    = arrange(pl$bp, "p")),
             class = "ranef.selfisher")
 }
