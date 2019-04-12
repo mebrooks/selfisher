@@ -59,17 +59,17 @@ print.fixef.selfisher <- function(x, digits = max(3, getOption("digits") - 3), .
 ##' Extract Random Effects
 ##'
 ##' Generic function to extract random effects from \code{selfisher} models, both
-##' for the conditional model and zero inflation.
+##' for the selectivity (i.e. retention) model and relative fising power model.
 ##'
 ##' @param object a \code{selfisher} model.
 ##' @param ... some methods for this generic function require additional
 ##'   arguments.
 ##'
 ##' @return Object of class \code{ranef.selfisher} with two components:
-##'   \item{conditional_model}{a list of data frames, containing random effects
-##'     for the conditional model.}
-##'   \item{zero_inflation}{a list of data frames, containing random effects for
-##'     the zero inflation.}
+##'   \item{r}{a list of data frames, containing random effects
+##'     for the selectivity (i.e. retention) model.}
+##'   \item{p}{a list of data frames, containing random effects for
+##'     the relative fising power model.}
 ##'
 ##' @note When a model has no zero inflation, the default behavior of
 ##'   \code{ranef} is to simplify the printed format of the random effects. To
@@ -79,6 +79,9 @@ print.fixef.selfisher <- function(x, digits = max(3, getOption("digits") - 3), .
 ##'
 ##' @seealso \code{\link{fixef.selfisher}}.
 ##'##'
+##' @example
+##' data(ccmhsdat)
+##' ranef(selfisher(prop~length*type+(1|haul), total=total, ccmhsdat))
 ##' @aliases ranef ranef.selfisher
 ##' @importFrom nlme ranef
 ##' @export ranef
