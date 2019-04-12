@@ -25,11 +25,16 @@ Generic function to extract random effects from \code{selfisher} models, both
 for the selectivity (i.e. retention) model and relative fising power model.
 }
 \note{
-When a model has no zero inflation, the default behavior of
+When a model has no model of relative fishing power, the default behavior of
   \code{ranef} is to simplify the printed format of the random effects. To
   show the full list structure, run \code{print(ranef(model),
   simplify=FALSE)}. In all cases, the full list structure is used to access
   the data frames (see example).
+}
+\examples{
+data(ccmhsdat)
+ranef(selfisher(prop~length*type+(1|haul), total=total, ccmhsdat))
+print(ranef(selfisher(prop~length*type+(1|haul), total=total, ccmhsdat)), simplify=FALSE)
 }
 \seealso{
 \code{\link{fixef.selfisher}}.

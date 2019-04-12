@@ -71,7 +71,7 @@ print.fixef.selfisher <- function(x, digits = max(3, getOption("digits") - 3), .
 ##'   \item{p}{a list of data frames, containing random effects for
 ##'     the relative fising power model.}
 ##'
-##' @note When a model has no zero inflation, the default behavior of
+##' @note When a model has no model of relative fishing power, the default behavior of
 ##'   \code{ranef} is to simplify the printed format of the random effects. To
 ##'   show the full list structure, run \code{print(ranef(model),
 ##'   simplify=FALSE)}. In all cases, the full list structure is used to access
@@ -79,9 +79,10 @@ print.fixef.selfisher <- function(x, digits = max(3, getOption("digits") - 3), .
 ##'
 ##' @seealso \code{\link{fixef.selfisher}}.
 ##'##'
-##' @example
+##' @examples
 ##' data(ccmhsdat)
 ##' ranef(selfisher(prop~length*type+(1|haul), total=total, ccmhsdat))
+##' print(ranef(selfisher(prop~length*type+(1|haul), total=total, ccmhsdat)), simplify=FALSE)
 ##' @aliases ranef ranef.selfisher
 ##' @importFrom nlme ranef
 ##' @export ranef
