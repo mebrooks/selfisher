@@ -79,6 +79,7 @@ predict.selfisher <- function(object,newdata=NULL,
                             se.fit=FALSE,
                             re.form, allow.new.levels=FALSE,
                             type = c("response","selection","prob", "ratio"),
+                            na.action = na.pass,
                             debug=FALSE,
                             ...)
 {
@@ -108,6 +109,7 @@ predict.selfisher <- function(object,newdata=NULL,
     newFr <- object$fr
   } else {
     mf$data <- newdata
+    mf$na.action <- na.action
     newFr <- eval.parent(mf)
   }
 
