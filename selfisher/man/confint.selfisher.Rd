@@ -4,9 +4,10 @@
 \alias{confint.selfisher}
 \title{Calculate confidence intervals}
 \usage{
-\method{confint}{selfisher}(object, parm, level = 0.95, method = c("wald",
-  "Wald", "profile", "uniroot"), component = c("all", "r", "p", "other"),
-  estimate = TRUE, parallel = c("no", "multicore", "snow"),
+\method{confint}{selfisher}(object, parm, level = 0.95,
+  method = c("wald", "Wald", "profile", "uniroot"),
+  component = c("all", "r", "p", "other"), estimate = TRUE,
+  parallel = c("no", "multicore", "snow"),
   ncpus = getOption("profile.ncpus", 1L), cl = NULL, ...)
 }
 \arguments{
@@ -55,4 +56,3 @@ function to find critical values of one-dimensional profile
 functions for each specified parameter.}
 }
 }
-

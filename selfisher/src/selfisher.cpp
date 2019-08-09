@@ -104,7 +104,8 @@ enum valid_ppredictCode {
   response_ppredictcode = 0,
   selection_ppredictcode = 1,
   prob_ppredictcode = 2,
-  ratio_ppredictcode = 3
+  ratio_ppredictcode = 3,
+  link_ppredictcode = 4
 };
 
 template<class Type>
@@ -586,6 +587,9 @@ Type objective_function<Type>::operator() ()
   case ratio_ppredictcode:
     for (int i = 0; i < r.size(); i++)
       r(i) = inverse_linkfun(etar(i), etad(i), link)/(1-inverse_linkfun(etar(i), etad(i), link));
+    break;
+  case link_ppredictcode:
+    r = etar;
     break;
   default:
     error("Invalid 'PredictCode'");

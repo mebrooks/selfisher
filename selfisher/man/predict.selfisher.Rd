@@ -6,7 +6,7 @@
 \usage{
 \method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE,
   re.form, allow.new.levels = FALSE, type = c("response", "selection",
-  "prob", "ratio"), debug = FALSE, ...)
+  "prob", "ratio", "link"), na.action = na.pass, debug = FALSE, ...)
 }
 \arguments{
 \item{object}{a \code{selfisher} object}
@@ -23,8 +23,10 @@
 \item return expected value ("response": pr/(pr+1-p)),
 \item predicted selection curve ("selection": r),
 \item relative fishing power of the test gear ("prob"),
-\item Catch ratio from catch comparison models ("ratio": r/(1-r)).
-}}
+\item catch ratio from catch comparison models ("ratio": r/(1-r)),
+\item retention probability on link scale.
+}
+Some types (ratio, link) might not make sense to use with psplit models.}
 
 \item{debug}{(logical) return the \code{TMBStruc} object that will be
 used internally for debugging?}

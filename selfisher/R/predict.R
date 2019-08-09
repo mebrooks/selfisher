@@ -59,8 +59,10 @@ assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE)
 ##' \item return expected value ("response": pr/(pr+1-p)),
 ##' \item predicted selection curve ("selection": r),
 ##' \item relative fishing power of the test gear ("prob"),
-##' \item Catch ratio from catch comparison models ("ratio": r/(1-r)).
+##' \item catch ratio from catch comparison models ("ratio": r/(1-r)),
+##' \item retention probability on link scale.
 ##' }
+##' Some types (ratio, link) might not make sense to use with psplit models.
 ##' @param debug (logical) return the \code{TMBStruc} object that will be
 ##' used internally for debugging?
 ##' @param re.form (not yet implemented) specify which random effects to condition on when predicting. For now, all random effects are included.
@@ -78,7 +80,7 @@ assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE)
 predict.selfisher <- function(object,newdata=NULL,
                             se.fit=FALSE,
                             re.form, allow.new.levels=FALSE,
-                            type = c("response","selection","prob", "ratio"),
+                            type = c("response","selection","prob", "ratio", "link"),
                             na.action = na.pass,
                             debug=FALSE,
                             ...)
@@ -139,6 +141,7 @@ predict.selfisher <- function(object,newdata=NULL,
                        selection="selection",
                        prob="prob",
                        ratio="ratio",
+                       link="link",
                        stop("unknown type ",type))
   PredCode <- .valid_ppredictcode[PredNm]
 

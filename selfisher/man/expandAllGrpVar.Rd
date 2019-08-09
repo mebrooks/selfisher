@@ -13,4 +13,3 @@ expandAllGrpVar(bb)
 Modeled after lme4:::expandSlash, by Doug Bates
 }
 \keyword{internal}
-

@@ -24,5 +24,6 @@
   response = 0,
   selection = 1,
   prob = 2,
-  ratio = 3
+  ratio = 3,
+  link = 4
 )

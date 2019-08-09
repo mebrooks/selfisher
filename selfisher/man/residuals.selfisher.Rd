@@ -17,4 +17,3 @@
 \description{
 Compute residuals for a selfisher object
 }
-

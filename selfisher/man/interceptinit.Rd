@@ -14,4 +14,3 @@ interceptinit(link)
 Initialize the intercept based on the link funciton
 Assuming catchability of length 0 indivs is near 0
 }
-

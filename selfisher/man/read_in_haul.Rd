@@ -24,4 +24,3 @@ read in data from a single haul
 \details{
 the name of the file where the data is stored is paste0(name, x, extension)
 }
-
