@@ -53,7 +53,7 @@ newdata[,c("lo", "mid", "hi")]=t(quants)
 
 #Plot predictions
 ```{r plot}
-ggplot(sumdat, aes(length, prop, colour=type))+geom_point()+
+ggplot(sumdat, aes(length, prop, colour=type))+geom_point(aes(size=total), alpha=0.5)+
    geom_line(data=newdata)+
    geom_ribbon(data=newdata, aes(ymin=lo, ymax=hi, fill=type), alpha=0.2)
 ```
