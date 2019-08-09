@@ -44,6 +44,7 @@ newdata$prop=predict(mod_both, newdata=newdata, type="response")
 ```
 
 #Bootstrap to get CI on predictions
+In this vignette, we onlt do 100 simulations, but really there should be 1000.
 ```{r ci}
 bs=bootSel(mod_both, nsim=100, parallel = "multicore", ncpus = 4, FUN=function(mod){predict(mod, newdata=newdata, type="response")})
 

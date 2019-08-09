@@ -29,7 +29,7 @@ quants=apply(bs$t, 2, quantile, c(0.025, 0.5, 0.975))
 newdata[,c("lo", "mid", "hi")]=t(quants)
 
 ## ----plot----------------------------------------------------------------
-ggplot(sumdat, aes(length, prop, colour=type))+geom_point()+
+ggplot(sumdat, aes(length, prop, colour=type))+geom_point(aes(size=total), alpha=0.5)+
    geom_line(data=newdata)+
    geom_ribbon(data=newdata, aes(ymin=lo, ymax=hi, fill=type), alpha=0.2)
 
