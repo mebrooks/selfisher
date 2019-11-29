@@ -8,4 +8,10 @@ You can install `selfisher` via
 ```
 remotes::install_github("mebrooks/selfisher/selfisher", build_vignette = TRUE)
 ```
-(this string denotes "Github user `mebrooks`, repository `selfisher`, subdirectory `selfisher`"). You'll need to have development tools (compilers etc.) installed: `devtools::dr_devtools()` and the [RStudio devtools docs](https://www.rstudio.com/products/rpackages/devtools/) should help. If you get a warning saying `In checkMatrixPackageVersion() : Package version inconsistency detected.`, then you may need to first install TMB from source using the command `install.packages('TMB', type = 'source')`, then reinstall selfisher. Installing the source version will ensure that you get the very latest version of the package; since the package is in rapid development, that's a good idea. 
+If you haven't done so before, you may need to install Rtools on Windows from [here](https://cran.r-project.org/bin/windows/Rtools/). You'll need to have development tools (compilers etc.) installed: `devtools::dr_devtools()` and the [RStudio devtools docs](https://www.rstudio.com/products/rpackages/devtools/) should help. You may also need to install other packages that are used in the vignettes and examples
+```
+install.packages(c("knitr", "rmarkdown", "ggplot2", "bbmle", "plyr"))
+install.packages('TMB', type = 'source')
+```
+
+If you get a warning saying `In checkMatrixPackageVersion() : Package version inconsistency detected.`, then you may need to first install TMB from source using the command `install.packages('TMB', type = 'source')`, then reinstall selfisher. Installing the source version will ensure that you get the very latest version of the package; since the package is in rapid development, that's a good idea. 
