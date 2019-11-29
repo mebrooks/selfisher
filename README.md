@@ -8,7 +8,7 @@ You can install `selfisher` via
 ```
 remotes::install_github("mebrooks/selfisher/selfisher", build_vignette = TRUE)
 ```
-If you haven't done so before, you may need to install other dependicies first (e.g. Rtools on Windows from [here](https://cran.r-project.org/bin/windows/Rtools/), or other tools for a Mac from [here](https://cran.r-project.org/bin/macosx/tools/). You'll need to have development tools (compilers etc.) installed; this might help `devtools::dr_devtools()`. You may also need to install other packages that are used in the vignettes and examples
+If you haven't done so before, you may need to install other dependicies first. On Windows, get Rtools from [here](https://cran.r-project.org/bin/windows/Rtools/) and during installation, be sure to check the box for "add Rtools to path". On a Mac, you may need other tools from [here](https://cran.r-project.org/bin/macosx/tools/). You'll need to have development tools (compilers etc.) installed; this might help `devtools::dr_devtools()`. You may also need to install other packages that are used in the vignettes and examples
 ```
 install.packages(c("knitr", "rmarkdown", "ggplot2", "bbmle", "plyr"))
 install.packages('TMB', type = 'source')
