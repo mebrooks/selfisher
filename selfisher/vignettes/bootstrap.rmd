@@ -1,7 +1,7 @@
 ---
 title: "Bootstrapping"
 author: "Mollie Brooks"
-date: "8 April 2019"
+date: "6 December 2019"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{bootstrapping}
@@ -44,7 +44,7 @@ newdata$prop=predict(mod_both, newdata=newdata, type="response")
 ```
 
 #Bootstrap to get CI on predictions
-In this vignette, we onlt do 100 simulations, but really there should be 1000.
+In this vignette, we only do 100 simulations, but really there should be 1000.
 
 This is the code for bootstrapping on multiple cores on Windows computers
 ```{r ciwindows, eval=FALSE}

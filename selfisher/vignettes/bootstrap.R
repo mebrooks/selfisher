@@ -22,9 +22,19 @@ newdata=expand.grid(length=unique(ccmhsdat$length),
 
 newdata$prop=predict(mod_both, newdata=newdata, type="response")
 
-## ----ci------------------------------------------------------------------
-bs=bootSel(mod_both, nsim=100, parallel = "multicore", ncpus = 4, FUN=function(mod){predict(mod, newdata=newdata, type="response")})
+## ----ciwindows, eval=FALSE-----------------------------------------------
+#  ncpus = 4
+#  cl = makeCluster(rep("localhost", ncpus), outfile = 'log.txt')
+#  clusterExport(cl, "newdata")
+#  bs = bootSel(mod_both, nsim=100, parallel = "snow", cl=cl,
+#             FUN=function(mod){predict(mod, newdata=newdata, type="response")})
+#  stopCluster(cl)
 
+## ----cinonwindows--------------------------------------------------------
+bs = bootSel(mod_both, nsim=100, parallel = "multicore", ncpus = 4, 
+           FUN=function(mod){predict(mod, newdata=newdata, type="response")})
+
+## ----quantiles-----------------------------------------------------------
 quants=apply(bs$t, 2, quantile, c(0.025, 0.5, 0.975))
 newdata[,c("lo", "mid", "hi")]=t(quants)
 

@@ -22,12 +22,19 @@ The default (\code{FUN = L50SR}) only works with very simple models; use \code{\
 \item{seed}{optional argument to \code{\link{set.seed}}}
 
 \item{type}{character string specifying the type of
-bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (e.g. Millar 1993),
+bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (Millar 1993),
 \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed. Only the default version has been tested.}
 }
 \description{
 Perform bootstrap
 }
 \details{
-the default bootstrap type "double" is specific to fisheries literature.
+The code is based on code from the lme4 package,
+except that the default bootstrap type "double"
+is specific to fisheries literature.
+This code has not been tested on models containing random effects;
+we recommend removing them before bootstrapping. The double bootstrap
+procedure accounts for variability among "hauls" and it should be possible to
+use this to account for any factor that could be treated as a random effect.
+See \code{vignette("bootstrap")} for an example.
 }
