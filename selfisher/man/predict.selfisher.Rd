@@ -20,11 +20,10 @@
 \item{allow.new.levels}{(not yet implemented) allow previously unobserved levels in random-effects grouping variables?}
 
 \item{type}{\itemize{
-\item return expected value ("response": pr/(pr+1-p)),
+\item return expected response value ("response": see details below),
 \item predicted selection curve ("selection": r),
 \item relative fishing power of the test gear ("prob"),
-\item catch ratio from catch comparison models ("ratio": r/(1-r)),
-\item retention probability on link scale.
+\item catch ratio from catch comparison models ("ratio": r/(1-r)).
 }
 Some types (ratio, link) might not make sense to use with psplit models.}
 
@@ -37,7 +36,11 @@ used internally for debugging?}
 prediction
 }
 \details{
-This should work with random effects, but is untested.
+Predicting with type="response" returns values comparable to the
+response variable (the left-hand side of the model's rformula);
+that is  pr/(pr+1-p) in a model with psplit=TRUE
+or r in a model with psplit=FALSE.
+This function could work with random effects, but is untested.
 }
 \examples{
 data(haddock)
