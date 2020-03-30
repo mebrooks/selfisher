@@ -363,6 +363,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
 ##' @param haul Name of column representing different hauls. Needed for double bootstrap.
+##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to maintain same number of hauls in each pool.
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
@@ -400,6 +401,7 @@ selfisher <- function (
     link = "logit",
     total=NULL,
     haul=NULL,
+    pool=NULL,
     offset=NULL,
     Lp="basic",
     se=TRUE,
@@ -446,7 +448,7 @@ selfisher <- function (
     if(link!="Richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "haul", "offset"),
+    m <- match(c("data", "subset", "total", "haul", "offset", "pool"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
