@@ -829,14 +829,14 @@ read_in_haul=function(x, name="Haul", extension=".txt", raising=NULL, sampling=N
   if(!is.null(raising)) {
     RFindex= which(extra$LENGTH==raising)
     RF=extra[RFindex,]
-    colnames(RF)=paste0("raising_",colnames(RF))
+    colnames(RF)=paste(raising,colnames(RF), sep="_")
     for(i in 2:ncol(RF)) {lengths[,colnames(RF)[i]]=RF[i]}
     extra=extra[-RFindex,] #remove that row from extras
-  } else
-    if(!is.null(sampling)) {
+  } #no "else" because sometimes sampling can be hacked to bring in another raising factor (e.g. small)
+  if(!is.null(sampling)) {
       SFindex=which(extra$LENGTH==sampling)
       SF=extra[SFindex,]
-      colnames(SF)=paste0("sampling_",colnames(SF))
+      colnames(SF)=paste(sampling,colnames(SF), sep="_")
       for(i in 2:ncol(SF)) {lengths[,colnames(SF)[i]]=SF[i]}
       extra=extra[-SFindex,] #remove that row from extras
     }
