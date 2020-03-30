@@ -101,7 +101,7 @@ predict.selfisher <- function(object,newdata=NULL,
 
   ## need to 'fix' call to proper model.frame call whether or not
   ## we have new data, because ... (??)
-  m <- match(c("subset", "total","haul", "offset"),
+  m <- match(c("subset", "total","haul", "offset", "pool"),
              names(mf), 0L)
   mf <- mf[c(1L, m)]
 

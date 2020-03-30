@@ -4,9 +4,17 @@
 \alias{predict.selfisher}
 \title{prediction}
 \usage{
-\method{predict}{selfisher}(object, newdata = NULL, se.fit = FALSE,
-  re.form, allow.new.levels = FALSE, type = c("response", "selection",
-  "prob", "ratio", "link"), na.action = na.pass, debug = FALSE, ...)
+\method{predict}{selfisher}(
+  object,
+  newdata = NULL,
+  se.fit = FALSE,
+  re.form,
+  allow.new.levels = FALSE,
+  type = c("response", "selection", "prob", "ratio", "link"),
+  na.action = na.pass,
+  debug = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{a \code{selfisher} object}

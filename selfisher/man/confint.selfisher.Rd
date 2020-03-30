@@ -4,11 +4,18 @@
 \alias{confint.selfisher}
 \title{Calculate confidence intervals}
 \usage{
-\method{confint}{selfisher}(object, parm, level = 0.95,
+\method{confint}{selfisher}(
+  object,
+  parm,
+  level = 0.95,
   method = c("wald", "Wald", "profile", "uniroot"),
-  component = c("all", "r", "p", "other"), estimate = TRUE,
+  component = c("all", "r", "p", "other"),
+  estimate = TRUE,
   parallel = c("no", "multicore", "snow"),
-  ncpus = getOption("profile.ncpus", 1L), cl = NULL, ...)
+  ncpus = getOption("profile.ncpus", 1L),
+  cl = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{\code{selfisher} fitted object.}

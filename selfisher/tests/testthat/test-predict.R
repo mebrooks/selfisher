@@ -3,7 +3,7 @@ stopifnot(require("testthat"),
 
 data(haddock)
 dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-m1 <- selfisher(prop~Lengths, p=~1, total=tot, psplit = TRUE, dat)
+m1 <- selfisher(prop~Lengths, pformula=~1, total=tot, psplit = TRUE, dat)
 nd <- data.frame(Lengths=20:50, tot=100)
 
 context("Predict function")
@@ -24,7 +24,7 @@ test_that("Different types work", {
 		rep(0.573, nrow(dat)), tol=1e-2)
 })
 
-m0 <- selfisher(prop~Lengths, p=~0,  psplit = TRUE,total=tot, dat)
+m0 <- selfisher(prop~Lengths, pformula=~0,  psplit = TRUE,total=tot, dat)
 
 test_that("Prediction with fixed psplit works", {
 	expect_equal(predict(m0, type="response"),

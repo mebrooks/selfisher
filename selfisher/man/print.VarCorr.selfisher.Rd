@@ -4,8 +4,13 @@
 \alias{print.VarCorr.selfisher}
 \title{Printing The Variance and Correlation Parameters of a \code{selfisher}}
 \usage{
-\method{print}{VarCorr.selfisher}(x, digits = max(3, getOption("digits")
-  - 2), comp = "Std.Dev.", formatter = format, ...)
+\method{print}{VarCorr.selfisher}(
+  x,
+  digits = max(3, getOption("digits") - 2),
+  comp = "Std.Dev.",
+  formatter = format,
+  ...
+)
 }
 \arguments{
 \item{x}{a result of \code{\link{VarCorr}(<selfisher>)}.}

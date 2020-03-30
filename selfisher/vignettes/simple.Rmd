@@ -31,12 +31,12 @@ dat=transform(haddock,
 #Models
 First try a model that assumes psplit=0.5.
 ```{r mod0}
-m0=selfisher(prop~Lengths, p=~0, psplit=TRUE, total=tot, dat)
+m0=selfisher(prop~Lengths, pformula=~0, psplit=TRUE, total=tot, dat)
 ```
 
 then a model that estimates psplit...
 ```{r mod1}
-m1=selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
+m1=selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat)
 ```
 
 Then we can compare them.

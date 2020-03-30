@@ -4,11 +4,24 @@
 \alias{selfisher}
 \title{Fit gear selectivity models with TMB}
 \usage{
-selfisher(rformula, data = NULL, pformula = ~1, dformula = ~1,
-  psplit = FALSE, start = NULL, link = "logit", total = NULL,
-  haul = NULL, offset = NULL, Lp = "basic", se = TRUE,
-  verbose = FALSE, debug = FALSE, optControl = list(iter.max = 300,
-  eval.max = 400))
+selfisher(
+  rformula,
+  data = NULL,
+  pformula = ~1,
+  dformula = ~1,
+  psplit = FALSE,
+  start = NULL,
+  link = "logit",
+  total = NULL,
+  haul = NULL,
+  pool = NULL,
+  offset = NULL,
+  Lp = "basic",
+  se = TRUE,
+  verbose = FALSE,
+  debug = FALSE,
+  optControl = list(iter.max = 300, eval.max = 400)
+)
 }
 \arguments{
 \item{rformula}{combined fixed and random effects formula for the selectivity model, following lme4
@@ -39,6 +52,8 @@ standard deviation/Cholesky scale, for retention and psplit models);}
 
 \item{haul}{Name of column representing different hauls. Needed for double bootstrap.}
 
+\item{pool}{(Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.}
+
 \item{Lp}{controls calculation of length (L) at retention prob (p), see details}
 
 \item{se}{whether to return standard errors}
@@ -66,6 +81,6 @@ Fit gear selectivity models with TMB
 }
 \examples{
 dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-m0 <- selfisher(prop~Lengths, p=~0, psplit=TRUE, total=tot, dat)
-m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
+m0 <- selfisher(prop~Lengths, pformula=~0, psplit=TRUE, total=tot, dat)
+m1 <- selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat)
 }

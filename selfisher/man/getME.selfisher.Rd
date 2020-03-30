@@ -5,8 +5,12 @@
 \alias{getME}
 \title{Extract or Get Generalize Components from a Fitted Mixed Effects Model}
 \usage{
-\method{getME}{selfisher}(object, name = c("Xr", "Xp", "Zr", "Zp", "Xd",
-  "betar", "betap", "betad", "br", "bp", "thetar", "thetap"), ...)
+\method{getME}{selfisher}(
+  object,
+  name = c("Xr", "Xp", "Zr", "Zp", "Xd", "betar", "betap", "betad", "br", "bp",
+    "thetar", "thetap"),
+  ...
+)
 }
 \arguments{
 \item{object}{a fitted \code{selfisher} object}

@@ -2,7 +2,6 @@
 
 S3method(VarCorr,selfisher)
 S3method(anova,selfisher)
-S3method(as.data.frame,boot)
 S3method(confint,selfisher)
 S3method(df.residual,selfisher)
 S3method(extractAIC,selfisher)
