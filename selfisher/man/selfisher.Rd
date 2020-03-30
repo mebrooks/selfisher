@@ -52,7 +52,7 @@ standard deviation/Cholesky scale, for retention and psplit models);}
 
 \item{haul}{Name of column representing different hauls. Needed for double bootstrap.}
 
-\item{pool}{(Optional) name of column representing different pools of hauls. Used in double bootstrap to maintain same number of hauls in each pool.}
+\item{pool}{(Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.}
 
 \item{Lp}{controls calculation of length (L) at retention prob (p), see details}
 
@@ -81,6 +81,6 @@ Fit gear selectivity models with TMB
 }
 \examples{
 dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-m0 <- selfisher(prop~Lengths, p=~0, psplit=TRUE, total=tot, dat)
-m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
+m0 <- selfisher(prop~Lengths, pformula=~0, psplit=TRUE, total=tot, dat)
+m1 <- selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat)
 }

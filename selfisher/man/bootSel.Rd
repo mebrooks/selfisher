@@ -41,9 +41,11 @@ Perform bootstrap
 The code is based on code from the lme4 package,
 except that the default bootstrap type "double"
 is specific to fisheries literature.
-This code has not been tested on models containing random effects;
-we recommend removing them before bootstrapping. The double bootstrap
+This code has not been tested on models containing random effects.
+The double bootstrap
 procedure accounts for variability among "hauls" and it should be possible to
 use this to account for any factor that could be treated as a random effect.
+It is possible to resample hauls from multiple pools while producing
+the same number of hauls per pool in the bootstrap replicates (Herrmann et al. 2017).
 See \code{vignette("bootstrap")} for an example.
 }
