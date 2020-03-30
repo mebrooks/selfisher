@@ -28,10 +28,12 @@ L50SR <- function(x) {
 ##' @details The code is based on code from the lme4 package,
 ##' except that the default bootstrap type "double"
 ##' is specific to fisheries literature.
-##' This code has not been tested on models containing random effects;
-##' we recommend removing them before bootstrapping. The double bootstrap
+##' This code has not been tested on models containing random effects.
+##' The double bootstrap
 ##' procedure accounts for variability among "hauls" and it should be possible to
 ##' use this to account for any factor that could be treated as a random effect.
+##' It is possible to resample hauls from multiple pools while producing
+##' the same number of hauls per pool in the bootstrap replicates (Herrmann et al. 2017).
 ##' See \code{vignette("bootstrap")} for an example.
 ##' @export
 
@@ -95,17 +97,17 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
            oldhaul <- olddata[,as.character(cc$haul)]
            splith <- split(olddata, oldhaul, drop=TRUE)
 
-           if(is.null(x$frame[,"(pool)"]) {
+           if(is.null(cc$pool)) {
                #resample haul indicies (not names)
                newhauls <- replicate(nsim, sample(1:length(hauls), length(hauls), replace=TRUE))
            }
-           if(!is.null(x$frame[,"(pool)"]) {
+           if(!is.null(cc$pool)) {
                pools <- unique(x$frame[,"(pool)"])
-               
+
                #split the old data by pool
                oldpool <- olddata[,as.character(cc$pool)]
                splitp <- split(olddata, oldpool, drop=TRUE)
-               
+
                #split old hauls by pools
                splithp=split(oldhaul, oldpool, drop=TRUE)
 
@@ -113,12 +115,12 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
                newhaulsl=list()
                for(p in 1:length(pools)) {
                    nhinp <- length(unique(splitp[[p]][, as.character(cc$haul)])) #number of hauls in this pool
-                   newhaulsl[[p]] <- replicate(nsim, sample(which(names(splith)%in% splithp[[p]]), 
+                   newhaulsl[[p]] <- replicate(nsim, sample(which(names(splith)%in% splithp[[p]]),
                    					nhinp, replace=TRUE))
                }
-               newhauls=do.call(rbind, newhaulsl)    
+               newhauls=do.call(rbind, newhaulsl)
            }
-           
+
            oldtotal <- as.character(cc$total)
            oldrespcol <- as.character(cc$rformula[[2]])
 

@@ -4,10 +4,26 @@
 \alias{mkTMBStruc}
 \title{Extract info from formulas, reTrms, etc., format for TMB}
 \usage{
-mkTMBStruc(rformula, pformula, dformula, combForm, mf, fr, yobs, total,
-  family, link_char, psplit, Lp, pPredictCode = "selection",
-  doPredict = 0, whichPredict = integer(0), start = NULL,
-  call = NULL, respCol)
+mkTMBStruc(
+  rformula,
+  pformula,
+  dformula,
+  combForm,
+  mf,
+  fr,
+  yobs,
+  total,
+  family,
+  link_char,
+  psplit,
+  Lp,
+  pPredictCode = "selection",
+  doPredict = 0,
+  whichPredict = integer(0),
+  start = NULL,
+  call = NULL,
+  respCol
+)
 }
 \arguments{
 \item{rformula}{combined fixed and random effects formula for the selectivity model, following lme4

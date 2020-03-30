@@ -363,7 +363,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
 ##' @param haul Name of column representing different hauls. Needed for double bootstrap.
-##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to maintain same number of hauls in each pool.
+##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
@@ -389,8 +389,8 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @export
 ##' @examples
 ##' dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
-##' m0 <- selfisher(prop~Lengths, p=~0, psplit=TRUE, total=tot, dat)
-##' m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
+##' m0 <- selfisher(prop~Lengths, pformula=~0, psplit=TRUE, total=tot, dat)
+##' m1 <- selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat)
 selfisher <- function (
     rformula,
     data = NULL,

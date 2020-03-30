@@ -4,11 +4,24 @@
 \alias{selfisher}
 \title{Fit gear selectivity models with TMB}
 \usage{
-selfisher(rformula, data = NULL, pformula = ~1, dformula = ~1,
-  psplit = FALSE, start = NULL, link = "logit", total = NULL,
-  haul = NULL, offset = NULL, Lp = "basic", se = TRUE,
-  verbose = FALSE, debug = FALSE, optControl = list(iter.max = 300,
-  eval.max = 400))
+selfisher(
+  rformula,
+  data = NULL,
+  pformula = ~1,
+  dformula = ~1,
+  psplit = FALSE,
+  start = NULL,
+  link = "logit",
+  total = NULL,
+  haul = NULL,
+  pool = NULL,
+  offset = NULL,
+  Lp = "basic",
+  se = TRUE,
+  verbose = FALSE,
+  debug = FALSE,
+  optControl = list(iter.max = 300, eval.max = 400)
+)
 }
 \arguments{
 \item{rformula}{combined fixed and random effects formula for the selectivity model, following lme4
@@ -38,6 +51,8 @@ standard deviation/Cholesky scale, for retention and psplit models);}
 \item{total}{The number of total fish caught in the test and control gear.}
 
 \item{haul}{Name of column representing different hauls. Needed for double bootstrap.}
+
+\item{pool}{(Optional) name of column representing different pools of hauls. Used in double bootstrap to maintain same number of hauls in each pool.}
 
 \item{Lp}{controls calculation of length (L) at retention prob (p), see details}
 

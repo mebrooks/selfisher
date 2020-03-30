@@ -4,10 +4,19 @@
 \alias{bootSel}
 \title{Perform bootstrap}
 \usage{
-bootSel(x, FUN = L50SR, nsim = 2, seed = NULL, type = c("double",
-  "parametric", "nonparameteric"), verbose = FALSE, .progress = "none",
-  PBargs = list(), parallel = c("no", "multicore", "snow"),
-  ncpus = getOption("boot.ncpus", 1L), cl = NULL)
+bootSel(
+  x,
+  FUN = L50SR,
+  nsim = 2,
+  seed = NULL,
+  type = c("double", "parametric", "nonparameteric"),
+  verbose = FALSE,
+  .progress = "none",
+  PBargs = list(),
+  parallel = c("no", "multicore", "snow"),
+  ncpus = getOption("boot.ncpus", 1L),
+  cl = NULL
+)
 }
 \arguments{
 \item{x}{a fitted \code{selfisher} object}

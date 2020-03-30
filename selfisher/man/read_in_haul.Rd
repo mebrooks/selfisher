@@ -4,8 +4,13 @@
 \alias{read_in_haul}
 \title{read in data from a single haul}
 \usage{
-read_in_haul(x, name = "Haul", extension = ".txt", raising = NULL,
-  sampling = NULL)
+read_in_haul(
+  x,
+  name = "Haul",
+  extension = ".txt",
+  raising = NULL,
+  sampling = NULL
+)
 }
 \arguments{
 \item{x}{possibly a number or other indicator of the unique haul}
