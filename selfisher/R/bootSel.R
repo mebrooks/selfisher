@@ -87,8 +87,11 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
            return(z)
        })
     } else {
-       cc <- getCall(x)
+        cc <- getCall(x)
         olddata <- eval(cc$data)
+        totalcol <- as.character(cc$total)
+        probcol <- as.character(cc$rformula[[2]])
+        
         if (type=="double") {
            hauls <- unique(x$frame[,"(haul)"])
            if(length(hauls)<=1) stop("Double bootstrap is only useful for multiple hauls. Maybe you want 'nonparameteric'.")
@@ -121,26 +124,33 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
                newhauls=do.call(rbind, newhaulsl)
            }
 
-           oldtotal <- as.character(cc$total)
-           oldrespcol <- as.character(cc$rformula[[2]])
-
            #within hauls, resample obs for each length class
            newdata <- apply(newhauls, 2, function(i){ do.call(rbind, splith[i])})
            ss <- lapply(newdata, function(z) {
-                   #overwrite the response variable
-                   z[,oldrespcol] <- rbinom(nrow(z), size=z[,oldtotal], prob=z[,oldrespcol])/z[,oldtotal]
-                   z[is.na(z[,oldrespcol]), oldrespcol] <- 0
+                   newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]), 
+                   				prob=z[,probcol]*z[,totalcol])
+                   newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]), 
+                   				prob=(1-z[,probcol])*z[,totalcol])
+                   z[,probcol] <- newsuccesses/(newsuccesses + newfailures)
+                   z[,totalcol] <- newsuccesses + newfailures
+
+                   z[is.na(z[, probcol]), probcol] <- 0
                    return(z)
                  })
         } else {
             if (type=="nonparameteric") {
+                ss <- replicate(nsim, function() {
+                    z  <- olddata
+                    newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]), 
+                   				prob=z[,probcol]*z[,totalcol])
+                    newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]), 
+                   				prob=(1-z[,probcol])*z[,totalcol])
+                    z[,probcol] <- newsuccesses/(newsuccesses + newfailures)
+                    z[,totalcol] <- newsuccesses + newfailures
 
-              ss <- replicate(nsim, function() {
-                      z  <- olddata
-                      #overwrite the response variable
-                      z[,oldrespcol] <- rbinom(length(z), z[,oldtotal], z[,oldrespcol])/z[,oldtotal]
-                      return(z)
-                    })
+                    z[is.na(z[, probcol]), probcol] <- 0
+                    return(z)
+               })
 
             } else {
             stop("unknown 'type' specified in call to bootSel")
