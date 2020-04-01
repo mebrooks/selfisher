@@ -48,7 +48,7 @@ before_install:
   - sed -i.bak "s/ g++/ ${CXX} ${CLANG_EXTRA_ARG} ${SHLIB_OPENMP_CXXFLAGS}/" ~/.R/Makevars
   - sed -i.bak "s/O[0-3]/O$CXX_OLEVEL/" ~/.R/Makevars
   - tlmgr install chicago
-  - cd glmmTMB
+  - cd selfisher
 # Link to OpenMP library for clang (https://github.com/jobovy/extreme-deconvolution/blob/master/.travis.yml)
   - export LD_LIBRARY_PATH=$(if [[ $CC == "clang" ]]; then echo -n '/usr/local/clang/lib'; fi)
 
