@@ -19,6 +19,7 @@ Imports:
 LinkingTo: TMB, RcppEigen
 Suggests:
     knitr,
+    rmarkdown,
     testthat,
     roxygen2,
     MASS,
