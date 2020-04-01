@@ -91,7 +91,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
         olddata <- eval(cc$data)
         totalcol <- as.character(cc$total)
         probcol <- as.character(cc$rformula[[2]])
-        
+        if(any(is.na(olddata[,probcol]))) stop("NAs in the response variable are not allowed in bootstrapping. Remove NAs from the data and refit the model before continuing.")
         if (type=="double") {
            hauls <- unique(x$frame[,"(haul)"])
            if(length(hauls)<=1) stop("Double bootstrap is only useful for multiple hauls. Maybe you want 'nonparameteric'.")
@@ -127,9 +127,9 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
            #within hauls, resample obs for each length class
            newdata <- apply(newhauls, 2, function(i){ do.call(rbind, splith[i])})
            ss <- lapply(newdata, function(z) {
-                   newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]), 
+                   newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]),
                    				prob=z[,probcol]*z[,totalcol])
-                   newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]), 
+                   newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]),
                    				prob=(1-z[,probcol])*z[,totalcol])
                    z[,probcol] <- newsuccesses/(newsuccesses + newfailures)
                    z[,totalcol] <- newsuccesses + newfailures
@@ -141,9 +141,9 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
             if (type=="nonparameteric") {
                 ss <- replicate(nsim, function() {
                     z  <- olddata
-                    newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]), 
+                    newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]),
                    				prob=z[,probcol]*z[,totalcol])
-                    newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]), 
+                    newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]),
                    				prob=(1-z[,probcol])*z[,totalcol])
                     z[,probcol] <- newsuccesses/(newsuccesses + newfailures)
                     z[,totalcol] <- newsuccesses + newfailures
