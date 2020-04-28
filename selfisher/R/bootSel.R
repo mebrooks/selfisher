@@ -23,8 +23,13 @@ L50SR <- function(x) {
 ##' @param nsim number of simulations, positive integer
 ##' @param seed optional argument to \code{\link{set.seed}}
 ##' @param type character string specifying the type of
-##' bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (Millar 1993),
-##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed. Only the default version has been tested.
+##' bootstrap, from the following:
+##' \item{\code{"double nonparametric"}} resample (with replacement) hauls and then fish within hauls
+##' \item{\code{"double multinomial"}} resample hauls with replacement, then simulate fish into the two gear types. For each gear type, length classes of simulated fish are assigned based on a multinomial distribution with probabilities proportional to original observations.
+##' \item {\code{"double binomial"}}
+
+(the defualt) as defined in gear selectivity literature (Millar 1993),
+##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed. Only the double bootstrap versions have been tested.
 ##' @details The code is based on code from the lme4 package,
 ##' except that the default bootstrap type "double"
 ##' is specific to fisheries literature.
