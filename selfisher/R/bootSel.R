@@ -42,12 +42,14 @@ L50SR <- function(x) {
 ##' @export
 
 bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
-                   type=c("double", "parametric", "nonparameteric"),
+                   type=c("double nonparametric", "double multinomial", "double binomial",
+                    "parametric", "nonparameteric"),
                    verbose = FALSE,
                    .progress = "none", PBargs=list(),
                    parallel = c("no", "multicore", "snow"),
                    ncpus = getOption("boot.ncpus", 1L), cl = NULL)
 {
+	double_types <- c("double nonparametric", "double multinomial", "double binomial")
     stopifnot((nsim <- as.integer(nsim[1])) > 0)
     if (.progress!="none") { ## progress bar
         pbfun <- get(paste0(.progress,"ProgressBar"))
@@ -96,7 +98,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
         totalcol <- as.character(cc$total)
         probcol <- as.character(cc$rformula[[2]])
         if(any(is.na(olddata[,probcol]))) stop("NAs in the response variable are not allowed in bootstrapping. Remove NAs from the data and refit the model before continuing.")
-        if (type=="double") {
+        if (type %in% double_types) {
            hauls <- unique(x$frame[,"(haul)"])
            if(length(hauls)<=1) stop("Double bootstrap is only useful for multiple hauls. Maybe you want 'nonparameteric'.")
 
@@ -107,7 +109,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
            if(is.null(cc$pool)) {
                #resample haul indicies (not names)
                newhauls <- replicate(nsim, sample(1:length(hauls), length(hauls), replace=TRUE))
-           }
+           } #end resampling simple hauls
            if(!is.null(cc$pool)) {
                pools <- unique(x$frame[,"(pool)"])
 
@@ -116,21 +118,23 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
                splitp <- split(olddata, oldpool, drop=TRUE)
 
                #split old hauls by pools
-               splithp=split(oldhaul, oldpool, drop=TRUE)
+               splithp <- split(oldhaul, oldpool, drop=TRUE)
 
                #resample haul indicies within pools (not names)
-               newhaulsl=list()
+               newhaulsl <- list()
                for(p in 1:length(pools)) {
                    nhinp <- length(unique(splitp[[p]][, as.character(cc$haul)])) #number of hauls in this pool
                    newhaulsl[[p]] <- replicate(nsim, sample(which(names(splith)%in% splithp[[p]]),
                    					nhinp, replace=TRUE))
                }
-               newhauls=do.call(rbind, newhaulsl)
-           }
-
-           #within hauls, resample obs for each length class
+               newhauls <- do.call(rbind, newhaulsl)
+           } #end resampling hauls within pools
+           #bind all the new hauls together into one data set (per sim)
            newdata <- apply(newhauls, 2, function(i){ do.call(rbind, splith[i])})
-           ss <- lapply(newdata, function(z) {
+           
+           #Then resample fish within hauls of the new dataset
+           if(type=="double multinomial") {
+             ss <- lapply(newdata, function(z) {
                    newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]),
                    				prob=z[,probcol]*z[,totalcol])
                    newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]),
@@ -141,7 +145,23 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
                    z[is.na(z[, probcol]), probcol] <- 0
                    return(z)
                  })
-        } else {
+           } else {
+           if( type=="double nonparametric") {
+             ss <- lapply(newdata, function(z) {
+
+           	        z[is.na(z[, probcol]), probcol] <- 0
+                   return(z)
+                 })
+           } else {
+           if( type=="double binomial") {
+             ss <- lapply(newdata, function(z) {
+            	  #overwrite the response variable
+            	  z[, probcol] <- rbinom(nrow(z), size=z[, totalcol], prob=z[, probcol])/z[, totalcol]
+            	  z[is.na(z[, probcol]), probcol] <- 0
+                   return(z)
+                 })
+          }}}
+        } else { #end of double bootstrapping types
             if (type=="nonparameteric") {
                 ss <- replicate(nsim, function() {
                     z  <- olddata
