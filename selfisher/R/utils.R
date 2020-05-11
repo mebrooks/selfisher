@@ -539,3 +539,8 @@ parallel_default <- function(parallel=c("no","multicore","snow"),ncpus=1) {
 model.total <- function (x) {
   x$"(total)"
 }
+
+## do the same thing for qratio as with total
+model.qratio <- function (x) {
+  x$"(qratio)"
+}
