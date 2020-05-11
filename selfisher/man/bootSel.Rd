@@ -9,7 +9,7 @@ bootSel(
   FUN = L50SR,
   nsim = 2,
   seed = NULL,
-  type = c("double", "parametric", "nonparameteric"),
+  type = c("double nonparametric", "double binomial", "parametric", "nonparametric"),
   verbose = FALSE,
   .progress = "none",
   PBargs = list(),
@@ -31,20 +31,27 @@ The default (\code{FUN = L50SR}) only works with very simple models; use \code{\
 \item{seed}{optional argument to \code{\link{set.seed}}}
 
 \item{type}{character string specifying the type of
-bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (Millar 1993),
-\code{"parametric"} or \code{"nonparametric"}; partial matching is allowed. Only the default version has been tested.}
+bootstrap, from the following:
+\itemize{
+\item{\code{"double nonparametric"}} resample hauls, then resample observed fish within hauls.
+\item {\code{"double binomial"}} resample hauls, then in each haul simulate fish into each length class. The total number in each length class is equal to the observed number in that length class in that haul. The probability of ending up in either gear in rbinom is equal to the observed proportion in the original data.
+\item \code{"parametric"} simulates from the fitted model. Any random effects are simulated from their estimated normal distribution.
+\item \code{"nonparametric"}
+}
+All resampling is done with replacement.
+All resampling is done on observed fish only, not the raised numbers. Raising before resamping reduces variability as if more observations were made.}
 }
 \description{
 Perform bootstrap
 }
 \details{
-The code is based on code from the lme4 package,
-except that the default bootstrap type "double"
-is specific to fisheries literature.
+The code structure is based on code from the lme4 package,
+except that bootstraps of type "double"
+are specific to fisheries gear selectivity literature (Millar 1993).
 This code has not been tested on models containing random effects.
 The double bootstrap
-procedure accounts for variability among "hauls" and it should be possible to
-use this to account for any factor that could be treated as a random effect.
+procedures account for variability among "hauls" and it should be possible to
+use this feature to account for any factor that could be treated as a random effect.
 It is possible to resample hauls from multiple pools while producing
 the same number of hauls per pool in the bootstrap replicates (Herrmann et al. 2017).
 See \code{vignette("bootstrap")} for an example.
