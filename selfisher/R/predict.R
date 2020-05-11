@@ -101,7 +101,7 @@ predict.selfisher <- function(object,newdata=NULL,
 
   ## need to 'fix' call to proper model.frame call whether or not
   ## we have new data, because ... (??)
-  m <- match(c("subset", "total","haul", "offset", "pool"),
+  m <- match(c("subset", "total","haul", "offset", "pool", "qratio"),
              names(mf), 0L)
   mf <- mf[c(1L, m)]
 
@@ -158,7 +158,8 @@ predict.selfisher <- function(object,newdata=NULL,
                                mf=mf,
                                fr=augFr,
                                yobs=yobs,
-                               total=model.total(augFr),
+                               total=model.extract(augFr, "total"),
+                               qratio= model.extract(augFr, "qratio"),
                                family=omi$familyStr,
                                link=omi$link,
                                psplit=omi$psplit,
