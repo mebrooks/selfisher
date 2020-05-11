@@ -15,7 +15,7 @@
 ##' @param whichPredict which observations in model frame represent predictions
 ##' @param start vector of initial values for the size selectivity model
 ##' @keywords internal
-##' @importFrom stats model.offset
+##' @importFrom stats model.offset model.extract
 mkTMBStruc <- function(rformula, pformula, dformula,
                        combForm,
                        mf, fr,
@@ -487,8 +487,8 @@ selfisher <- function (
     ## store full, original formula
     ## attr(fr,"formula") <- combForm  ## unnecessary?
     nobs <- nrow(fr)
-    total <- as.vector(model.total(fr))
-    qratio <- as.vector(model.qratio(fr))
+    total <- as.vector(model.extract(fr, "total"))
+    qratio <- as.vector(model.extract(fr, "qratio"))
 
     if(is.null(total)) {
       stop("The total number of fish used to calculate the proportion (i.e the response variable) must be specified using 'total' argument.")
