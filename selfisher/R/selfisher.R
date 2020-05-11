@@ -54,6 +54,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   nobs <- nrow(fr)
 
   if (is.null(total)) total <- rep(1,nobs)
+  if (is.null(qratio)) qratio <- rep(1,nobs)
 
   ## store info on location of response variable
   respCol <- attr(terms(fr), "response")
@@ -487,10 +488,12 @@ selfisher <- function (
     ## attr(fr,"formula") <- combForm  ## unnecessary?
     nobs <- nrow(fr)
     total <- as.vector(model.total(fr))
+    qratio <- as.vector(model.qratio(fr))
 
     if(is.null(total)) {
       stop("The total number of fish used to calculate the proportion (i.e the response variable) must be specified using 'total' argument.")
     }
+    if (is.null(qratio)) qratio <- rep(1,nobs)
 
     ## sanity checks (skipped!)
     ## wmsgNlev <- checkNlevels(reTrms$ flist, n=n, control, allow.n=TRUE)
