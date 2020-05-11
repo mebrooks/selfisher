@@ -19,7 +19,7 @@
 mkTMBStruc <- function(rformula, pformula, dformula,
                        combForm,
                        mf, fr,
-                       yobs, total, qratio,
+                       yobs, total, qratio=NULL,
                        family, link_char, psplit, Lp,
                        pPredictCode="selection",
                        doPredict=0,
@@ -78,7 +78,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     respCol,
     offset = rList$offset,
     total,
-    qratio,
+    q = qratio,
     ## information about random effects structure
     termsr = rReStruc,
     termsp = pReStruc,
@@ -508,6 +508,11 @@ selfisher <- function (
     ## (name *must* be 'y' to match guts of family()$initialize
     y <- fr[,respCol]
 
+    ## don't let user fit a model with offsets used in the wrong way
+    if(!is.null(fr$offset) & link!="logit") stop("Offsets cannot be used to account for sampling in models with non-logit links. Use argument qratio instead.")
+    if(!is.null(fr$offset) & call$psplit) stop("Offsets cannot be used to account for sampling in models with psplit. Use argument qratio instead.")
+
+    
     TMBStruc <-
         mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,
                    combForm = combForm,
