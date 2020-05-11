@@ -6,6 +6,7 @@
 ##' @param yobs observed y
 ##' @param respCol response column
 ##' @param total total
+##' @param qratio ratio sampling fraction ratio
 ##' @param link character
 ##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
 ##' @param Lp controls calculation of length (L) at retention prob (p)
@@ -18,7 +19,7 @@
 mkTMBStruc <- function(rformula, pformula, dformula,
                        combForm,
                        mf, fr,
-                       yobs, total,
+                       yobs, total, qratio,
                        family, link_char, psplit, Lp,
                        pPredictCode="selection",
                        doPredict=0,
@@ -76,6 +77,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     respCol,
     offset = rList$offset,
     total,
+    qratio,
     ## information about random effects structure
     termsr = rReStruc,
     termsp = pReStruc,
@@ -364,6 +366,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param total The number of total fish caught in the test and control gear.
 ##' @param haul Name of column representing different hauls. Needed for double bootstrap methods.
 ##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.
+##' @param qratio ratio of fractions sampled (test/control) or (codend/cover) or more in the general binomial definition (sucesses/failures). Use this to correct for sampling, OR an offset when possible, but not both. Always use qratio instead of an offset when using a link other than logit, or when psplit=TRUE.
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
@@ -401,6 +404,7 @@ selfisher <- function (
     total=NULL,
     haul=NULL,
     pool=NULL,
+    qratio=NULL,
     offset=NULL,
     Lp="basic",
     se=TRUE,
@@ -447,7 +451,7 @@ selfisher <- function (
     if(link!="Richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "haul", "offset", "pool"),
+    m <- match(c("data", "subset", "total", "haul", "offset", "pool", "qratio"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -505,7 +509,7 @@ selfisher <- function (
         mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,
                    combForm = combForm,
                    mf=mf, fr=fr,
-                   yobs=y, total=total,
+                   yobs=y, total=total, qratio=qratio,
                    family=familyStr, link_char=link, psplit=psplit, start=start, Lp=Lp,
                    call=call, respCol=respCol)
 
