@@ -536,7 +536,7 @@ Type objective_function<Type>::operator() ()
   for (int i=0; i < yobs.size(); i++){
     if ( !selfisher::isNA(yobs(i)) ) {
       jnll -= dbinom_robust(yobs(i) * total(i), total(i), logit_phi(i), true);
-      SIMULATE{yobs(i) = rbinom(total(i), invlogit(logit_phi(i)));}
+      SIMULATE{yobs(i) = rbinom(total(i), invlogit(logit_phi(i)))/total(i);}
       //jnll -= dbinom(yobs(i) * total(i), total(i), phi(i), true);
       //SIMULATE{yobs(i) = rbinom(total(i), phi(i));}
 

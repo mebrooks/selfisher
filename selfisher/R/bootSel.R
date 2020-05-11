@@ -23,27 +23,36 @@ L50SR <- function(x) {
 ##' @param nsim number of simulations, positive integer
 ##' @param seed optional argument to \code{\link{set.seed}}
 ##' @param type character string specifying the type of
-##' bootstrap, \code{double}(the defualt) as defined in gear selectivity literature (Millar 1993),
-##' \code{"parametric"} or \code{"nonparametric"}; partial matching is allowed. Only the default version has been tested.
-##' @details The code is based on code from the lme4 package,
-##' except that the default bootstrap type "double"
-##' is specific to fisheries literature.
+##' bootstrap, from the following:
+##' \itemize{
+##' \item{\code{"double nonparametric"}} resample hauls, then resample observed fish within hauls.
+##' \item {\code{"double binomial"}} resample hauls, then in each haul simulate fish into each length class. The total number in each length class is equal to the observed number in that length class in that haul. The probability of ending up in either gear in rbinom is equal to the observed proportion in the original data.
+##' \item \code{"parametric"} simulates from the fitted model. Any random effects are simulated from their estimated normal distribution.
+##' \item \code{"nonparametric"}
+##' }
+##' All resampling is done with replacement.
+##' All resampling is done on observed fish only, not the raised numbers. Raising before resamping reduces variability as if more observations were made.
+##' @details The code structure is based on code from the lme4 package,
+##' except that bootstraps of type "double"
+##' are specific to fisheries gear selectivity literature (Millar 1993).
 ##' This code has not been tested on models containing random effects.
 ##' The double bootstrap
-##' procedure accounts for variability among "hauls" and it should be possible to
-##' use this to account for any factor that could be treated as a random effect.
+##' procedures account for variability among "hauls" and it should be possible to
+##' use this feature to account for any factor that could be treated as a random effect.
 ##' It is possible to resample hauls from multiple pools while producing
 ##' the same number of hauls per pool in the bootstrap replicates (Herrmann et al. 2017).
 ##' See \code{vignette("bootstrap")} for an example.
 ##' @export
 
 bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
-                   type=c("double", "parametric", "nonparameteric"),
+                   type=c("double nonparametric", "double binomial",
+                    "parametric", "nonparametric"),
                    verbose = FALSE,
                    .progress = "none", PBargs=list(),
                    parallel = c("no", "multicore", "snow"),
                    ncpus = getOption("boot.ncpus", 1L), cl = NULL)
 {
+	double_types <- c("double nonparametric", "double binomial")
     stopifnot((nsim <- as.integer(nsim[1])) > 0)
     if (.progress!="none") { ## progress bar
         pbfun <- get(paste0(.progress,"ProgressBar"))
@@ -79,6 +88,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
     cc <- getCall(x)
 
     if (type=="parametric") {
+       warning("This parametric bootstrapping code is untested.\n")
        argList <- list(x, nsim=nsim)
        y <- do.call(simulate,argList)
        ss <- lapply(y, function(y) {
@@ -91,8 +101,8 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
         olddata <- eval(cc$data)
         totalcol <- as.character(cc$total)
         probcol <- as.character(cc$rformula[[2]])
-        if(any(is.na(olddata[,probcol]))) stop("NAs in the response variable are not allowed in bootstrapping. Remove NAs from the data and refit the model before continuing.")
-        if (type=="double") {
+        if(any(is.na(olddata[,probcol]))) stop("NAs in the response variable are not allowed in bootstrapping. Remove NAs and refit the model before continuing.")
+        if (type %in% double_types) {
            hauls <- unique(x$frame[,"(haul)"])
            if(length(hauls)<=1) stop("Double bootstrap is only useful for multiple hauls. Maybe you want 'nonparameteric'.")
 
@@ -103,7 +113,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
            if(is.null(cc$pool)) {
                #resample haul indicies (not names)
                newhauls <- replicate(nsim, sample(1:length(hauls), length(hauls), replace=TRUE))
-           }
+           } #end resampling simple hauls
            if(!is.null(cc$pool)) {
                pools <- unique(x$frame[,"(pool)"])
 
@@ -112,21 +122,23 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
                splitp <- split(olddata, oldpool, drop=TRUE)
 
                #split old hauls by pools
-               splithp=split(oldhaul, oldpool, drop=TRUE)
+               splithp <- split(oldhaul, oldpool, drop=TRUE)
 
                #resample haul indicies within pools (not names)
-               newhaulsl=list()
+               newhaulsl <- list()
                for(p in 1:length(pools)) {
                    nhinp <- length(unique(splitp[[p]][, as.character(cc$haul)])) #number of hauls in this pool
                    newhaulsl[[p]] <- replicate(nsim, sample(which(names(splith)%in% splithp[[p]]),
                    					nhinp, replace=TRUE))
                }
-               newhauls=do.call(rbind, newhaulsl)
-           }
-
-           #within hauls, resample obs for each length class
+               newhauls <- do.call(rbind, newhaulsl)
+           } #end resampling hauls within pools
+           #bind all the new hauls together into one data set (per sim)
            newdata <- apply(newhauls, 2, function(i){ do.call(rbind, splith[i])})
-           ss <- lapply(newdata, function(z) {
+           
+           #Then resample fish within hauls of the new dataset
+           if(type=="double nonparametric") {
+             ss <- lapply(newdata, function(z) {
                    newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]),
                    				prob=z[,probcol]*z[,totalcol])
                    newfailures <- rmultinom(1, size=sum((1-z[,probcol])*z[,totalcol]),
@@ -137,9 +149,18 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
                    z[is.na(z[, probcol]), probcol] <- 0
                    return(z)
                  })
-        } else {
-            if (type=="nonparameteric") {
-                ss <- replicate(nsim, function() {
+           } else {
+           if( type=="double binomial") {
+             ss <- lapply(newdata, function(z) {
+            	  #overwrite the response variable
+            	  z[, probcol] <- rbinom(nrow(z), size=z[, totalcol], prob=z[, probcol])/z[, totalcol]
+            	  z[is.na(z[, probcol]), probcol] <- 0
+                   return(z)
+                 })
+          }}
+        } else { #end of double bootstrapping types
+            if (type=="nonparametric") {
+                ss <- lapply(1:nsim, function(nothing) {
                     z  <- olddata
                     newsuccesses <- rmultinom(1, size=sum(z[,probcol]*z[,totalcol]),
                    				prob=z[,probcol]*z[,totalcol])
