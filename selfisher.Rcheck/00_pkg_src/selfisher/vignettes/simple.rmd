@@ -1,0 +1,55 @@
+---
+title: "Simple catch comparison"
+author: "Mollie Brooks"
+date: "8/30/2018"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{simple}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Preliminaries
+```{r libs}
+library(selfisher)
+library(bbmle) #for AICtab
+```
+
+A simple haddock data set is distributed with the package. This data came from Russel Millar's website with his permission.
+
+```{r dat}
+data(haddock)
+head(haddock)
+dat=transform(haddock, 
+              tot=nfine+nwide, 
+              prop=nwide/(nfine+nwide))
+```
+
+#Models
+First try a model that assumes psplit=0.5.
+```{r mod0}
+m0=selfisher(prop~Lengths, pformula=~0, psplit=TRUE, total=tot, dat)
+```
+
+then a model that estimates psplit...
+```{r mod1}
+m1=selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat)
+```
+
+Then we can compare them.
+```{r aic}
+AICtab(m0, m1)
+```
+
+```{r sum}
+summary(m1)
+```
+
+#Plot residuals
+```{r pred}
+plot(dat$Length, residuals(m1, type="deviance"), type='h', ylim=c(-1,2))
+abline(0,0)
+```

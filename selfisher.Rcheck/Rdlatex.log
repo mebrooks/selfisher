@@ -1,0 +1,440 @@
+Hmm ... looks like a package
+
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+LaTeX2e <2018-12-01>
+(./Rd2.tex
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/book.cls
+Document Class: book 2018/09/03 v1.4i Standard LaTeX document class
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/bk10.clo))
+(/Library/Frameworks/R.framework/Resources/share/texmf/tex/latex/Rd.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ifthen.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/longtable.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/alltt.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/verbatim.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/url/url.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/textcomp.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1enc.def
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1enc.dfu)))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/fontenc.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/t1enc.def))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/times.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/zi4.sty
+`inconsolata-zi4' v1.112, 2017/01/04 Text macros for Inconsolata (msharpe)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/xkeyval/xkeyval.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/xkeyval.tex
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/xkvutils.tex
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/keyval.tex)))))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics/color.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics-cfg/color.cfg)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics-def/pdftex.def))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/hyperref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty))
+(/usr/local/texlive/2019/texmf-dist/tex/generic/ifxetex/ifxetex.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/auxhook.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/kvoptions.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/pd1enc.def)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/latexconfig/hyperref.cfg))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/hpdftex.def
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty))
+
+Package hyperref Warning: Option `hyperindex' has already been used,
+(hyperref)                setting the option has no effect on input line 377.
+
+
+Package hyperref Warning: Option `pagebackref' has already been used,
+(hyperref)                setting the option has no effect on input line 377.
+
+) (/usr/local/texlive/2019/texmf-dist/tex/latex/base/makeidx.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/inputenc.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/latin1.def))
+Writing index file Rd2.idx
+No file Rd2.aux.
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1cmr.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/t1ptm.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/nameref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/gettitlestring.sty))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/ts1ptm.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/t1zi4.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/t1phv.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/utf8.def) [1{/usr/local/texl
+ive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/ts1zi4.fd) [2]
+Overfull \hbox (24.80734pt too wide) in paragraph at lines 159--163
+[]\T1/ptm/m/n/10 This method com-putes a like-li-hood pro-file for the spec-i-f
+ied pa-ram-e-ter(s) us-ing \T1/zi4/m/n/10 profile.glmmTMB\T1/ptm/m/n/10 ;
+[3]
+Overfull \hbox (28.96721pt too wide) in paragraph at lines 238--240
+[]\T1/ptm/m/n/10 (character) which type of model struc-ture to re-port on ("all
+","family","link","covstruct") 
+[4] [5]
+Overfull \hbox (144.84787pt too wide) in paragraph at lines 299--303
+[]\T1/ptm/m/n/10 a char-ac-ter string in-di-cat-ing a valid co-vari-ance struc-
+ture. Must be one of \T1/zi4/m/n/10 names(selfisher:::.valid_covstruct)\T1/ptm/
+m/n/10 ;
+
+Overfull \hbox (4.05772pt too wide) in paragraph at lines 299--303
+\T1/ptm/m/n/10 de-fault is to use an un-struc-tured variance-covariance ma-trix
+ (\T1/zi4/m/n/10 "us"\T1/ptm/m/n/10 ) for all blocks). 
+[6] [7] [8] [9] [10]
+Overfull \hbox (72.53792pt too wide) in paragraph at lines 598--603
+\T1/ptm/m/n/10 the printed for-mat of the ran-dom ef-fects. To show the full li
+st struc-ture, run \T1/zi4/m/n/10 print(ranef(model),simplify=FALSE)\T1/ptm/m/n
+/10 .
+
+Overfull \hbox (0.77168pt too wide) in paragraph at lines 614--614
+ []\T1/zi4/m/n/9 print(ranef(selfisher(prop~length*type+(1|haul), total=total, 
+ccmhsdat)), simplify=FALSE)[] 
+[11] [12] [13]
+Overfull \hbox (10.36668pt too wide) in paragraph at lines 770--772
+[]\T1/ptm/m/n/10 A char-ac-ter in-di-cat-ing the link func-tion for the se-lec-
+tiv-ity model. \T1/zi4/m/n/10 "logit"\T1/ptm/m/n/10 (logistic)
+[14] [15]
+No file Rd2.ind.
+[16] (./Rd2.aux)
+
+Package rerunfilecheck Warning: File `Rd2.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+ )
+(see the transcript file for additional information)pdfTeX warning (dest): name
+{Rfn.print} has been referenced but does not exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.function} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.VarCorr} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.mkReTrms} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.uniroot} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.tmbroot} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.profile.selMod} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.set.seed} has been referenced but does not exis
+t, replaced by a fixed one
+
+{/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/inconsolata/i4-ts1.enc}{/us
+r/local/texlive/2019/texmf-dist/fonts/enc/dvips/base/8r.enc}{/usr/local/texlive
+/2019/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}</usr/local/texlive/20
+19/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></usr/local/t
+exlive/2019/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/
+2019/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2019/texmf
+-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/font
+s/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/ur
+w/times/utmri8a.pfb>
+Output written on Rd2.pdf (16 pages, 113389 bytes).
+Transcript written on Rd2.log.
+This is makeindex, version 2.15 [TeX Live 2019] (kpathsea + Thai support).
+Scanning input file Rd2.idx....done (36 entries accepted, 0 rejected).
+Sorting entries....done (193 comparisons).
+Generating output file Rd2.ind....done (86 lines written, 0 warnings).
+Output written in Rd2.ind.
+Transcript written in Rd2.ilg.
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+LaTeX2e <2018-12-01>
+(./Rd2.tex
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/book.cls
+Document Class: book 2018/09/03 v1.4i Standard LaTeX document class
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/bk10.clo))
+(/Library/Frameworks/R.framework/Resources/share/texmf/tex/latex/Rd.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ifthen.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/longtable.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/alltt.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/verbatim.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/url/url.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/textcomp.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1enc.def
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1enc.dfu)))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/fontenc.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/t1enc.def))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/times.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/zi4.sty
+`inconsolata-zi4' v1.112, 2017/01/04 Text macros for Inconsolata (msharpe)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/xkeyval/xkeyval.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/xkeyval.tex
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/xkvutils.tex
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/keyval.tex)))))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics/color.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics-cfg/color.cfg)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics-def/pdftex.def))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/hyperref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty))
+(/usr/local/texlive/2019/texmf-dist/tex/generic/ifxetex/ifxetex.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/auxhook.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/kvoptions.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/pd1enc.def)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/latexconfig/hyperref.cfg))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/hpdftex.def
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty))
+
+Package hyperref Warning: Option `hyperindex' has already been used,
+(hyperref)                setting the option has no effect on input line 377.
+
+
+Package hyperref Warning: Option `pagebackref' has already been used,
+(hyperref)                setting the option has no effect on input line 377.
+
+) (/usr/local/texlive/2019/texmf-dist/tex/latex/base/makeidx.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/inputenc.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/latin1.def))
+Writing index file Rd2.idx
+(./Rd2.aux) (/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1cmr.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/t1ptm.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/nameref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/gettitlestring.sty))
+(./Rd2.out) (./Rd2.out)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/ts1ptm.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/t1zi4.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/t1phv.fd) (./Rd2.toc
+[1{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}])
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/utf8.def) [2]
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/ts1zi4.fd) [3]
+Overfull \hbox (24.80734pt too wide) in paragraph at lines 159--163
+[]\T1/ptm/m/n/10 This method com-putes a like-li-hood pro-file for the spec-i-f
+ied pa-ram-e-ter(s) us-ing \T1/zi4/m/n/10 profile.glmmTMB\T1/ptm/m/n/10 ;
+[4]
+Overfull \hbox (28.96721pt too wide) in paragraph at lines 238--240
+[]\T1/ptm/m/n/10 (character) which type of model struc-ture to re-port on ("all
+","family","link","covstruct") 
+[5]
+Overfull \hbox (144.84787pt too wide) in paragraph at lines 299--303
+[]\T1/ptm/m/n/10 a char-ac-ter string in-di-cat-ing a valid co-vari-ance struc-
+ture. Must be one of \T1/zi4/m/n/10 names(selfisher:::.valid_covstruct)\T1/ptm/
+m/n/10 ;
+
+Overfull \hbox (4.05772pt too wide) in paragraph at lines 299--303
+\T1/ptm/m/n/10 de-fault is to use an un-struc-tured variance-covariance ma-trix
+ (\T1/zi4/m/n/10 "us"\T1/ptm/m/n/10 ) for all blocks). 
+[6] [7] [8] [9] [10]
+Overfull \hbox (72.53792pt too wide) in paragraph at lines 598--603
+\T1/ptm/m/n/10 the printed for-mat of the ran-dom ef-fects. To show the full li
+st struc-ture, run \T1/zi4/m/n/10 print(ranef(model),simplify=FALSE)\T1/ptm/m/n
+/10 .
+
+Overfull \hbox (0.77168pt too wide) in paragraph at lines 614--614
+ []\T1/zi4/m/n/9 print(ranef(selfisher(prop~length*type+(1|haul), total=total, 
+ccmhsdat)), simplify=FALSE)[] 
+[11] [12] [13]
+Overfull \hbox (10.36668pt too wide) in paragraph at lines 770--772
+[]\T1/ptm/m/n/10 A char-ac-ter in-di-cat-ing the link func-tion for the se-lec-
+tiv-ity model. \T1/zi4/m/n/10 "logit"\T1/ptm/m/n/10 (logistic)
+[14] [15] (./Rd2.ind [16]
+
+LaTeX Font Warning: Font shape `T1/zi4/m/it' undefined
+(Font)              using `T1/zi4/m/n' instead on input line 25.
+
+[17]) (./Rd2.aux)
+
+Package rerunfilecheck Warning: File `Rd2.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+ )
+(see the transcript file for additional information)pdfTeX warning (dest): name
+{Rfn.print} has been referenced but does not exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.function} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.VarCorr} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.mkReTrms} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.uniroot} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.tmbroot} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.profile.selMod} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.set.seed} has been referenced but does not exis
+t, replaced by a fixed one
+
+{/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/inconsolata/i4-ts1.enc}{/us
+r/local/texlive/2019/texmf-dist/fonts/enc/dvips/base/8r.enc}{/usr/local/texlive
+/2019/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}</usr/local/texlive/20
+19/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></usr/local/t
+exlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/te
+xlive/2019/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/2
+019/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2019/texmf-
+dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/fonts
+/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/urw
+/times/utmri8a.pfb>
+Output written on Rd2.pdf (17 pages, 126126 bytes).
+Transcript written on Rd2.log.
+This is makeindex, version 2.15 [TeX Live 2019] (kpathsea + Thai support).
+Scanning input file Rd2.idx....done (36 entries accepted, 0 rejected).
+Sorting entries....done (193 comparisons).
+Generating output file Rd2.ind....done (86 lines written, 0 warnings).
+Output written in Rd2.ind.
+Transcript written in Rd2.ilg.
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+LaTeX2e <2018-12-01>
+(./Rd2.tex
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/book.cls
+Document Class: book 2018/09/03 v1.4i Standard LaTeX document class
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/bk10.clo))
+(/Library/Frameworks/R.framework/Resources/share/texmf/tex/latex/Rd.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ifthen.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/longtable.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/alltt.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/tools/verbatim.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/url/url.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/textcomp.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1enc.def
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1enc.dfu)))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/fontenc.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/t1enc.def))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/times.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/zi4.sty
+`inconsolata-zi4' v1.112, 2017/01/04 Text macros for Inconsolata (msharpe)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/xkeyval/xkeyval.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/xkeyval.tex
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/xkvutils.tex
+(/usr/local/texlive/2019/texmf-dist/tex/generic/xkeyval/keyval.tex)))))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics/color.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics-cfg/color.cfg)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/graphics-def/pdftex.def))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/hyperref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty))
+(/usr/local/texlive/2019/texmf-dist/tex/generic/ifxetex/ifxetex.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/auxhook.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/kvoptions.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/pd1enc.def)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/latexconfig/hyperref.cfg))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/hpdftex.def
+(/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty))
+
+Package hyperref Warning: Option `hyperindex' has already been used,
+(hyperref)                setting the option has no effect on input line 377.
+
+
+Package hyperref Warning: Option `pagebackref' has already been used,
+(hyperref)                setting the option has no effect on input line 377.
+
+) (/usr/local/texlive/2019/texmf-dist/tex/latex/base/makeidx.sty)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/inputenc.sty
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/latin1.def))
+Writing index file Rd2.idx
+(./Rd2.aux) (/usr/local/texlive/2019/texmf-dist/tex/latex/base/ts1cmr.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/t1ptm.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/nameref.sty
+(/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/gettitlestring.sty))
+(./Rd2.out) (./Rd2.out)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/ts1ptm.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/t1zi4.fd)
+(/usr/local/texlive/2019/texmf-dist/tex/latex/psnfss/t1phv.fd) (./Rd2.toc
+[1{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}])
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/utf8.def) [2]
+(/usr/local/texlive/2019/texmf-dist/tex/latex/inconsolata/ts1zi4.fd) [3]
+Overfull \hbox (24.80734pt too wide) in paragraph at lines 159--163
+[]\T1/ptm/m/n/10 This method com-putes a like-li-hood pro-file for the spec-i-f
+ied pa-ram-e-ter(s) us-ing \T1/zi4/m/n/10 profile.glmmTMB\T1/ptm/m/n/10 ;
+[4]
+Overfull \hbox (28.96721pt too wide) in paragraph at lines 238--240
+[]\T1/ptm/m/n/10 (character) which type of model struc-ture to re-port on ("all
+","family","link","covstruct") 
+[5]
+Overfull \hbox (144.84787pt too wide) in paragraph at lines 299--303
+[]\T1/ptm/m/n/10 a char-ac-ter string in-di-cat-ing a valid co-vari-ance struc-
+ture. Must be one of \T1/zi4/m/n/10 names(selfisher:::.valid_covstruct)\T1/ptm/
+m/n/10 ;
+
+Overfull \hbox (4.05772pt too wide) in paragraph at lines 299--303
+\T1/ptm/m/n/10 de-fault is to use an un-struc-tured variance-covariance ma-trix
+ (\T1/zi4/m/n/10 "us"\T1/ptm/m/n/10 ) for all blocks). 
+[6] [7] [8] [9] [10]
+Overfull \hbox (72.53792pt too wide) in paragraph at lines 598--603
+\T1/ptm/m/n/10 the printed for-mat of the ran-dom ef-fects. To show the full li
+st struc-ture, run \T1/zi4/m/n/10 print(ranef(model),simplify=FALSE)\T1/ptm/m/n
+/10 .
+
+Overfull \hbox (0.77168pt too wide) in paragraph at lines 614--614
+ []\T1/zi4/m/n/9 print(ranef(selfisher(prop~length*type+(1|haul), total=total, 
+ccmhsdat)), simplify=FALSE)[] 
+[11] [12] [13]
+Overfull \hbox (10.36668pt too wide) in paragraph at lines 770--772
+[]\T1/ptm/m/n/10 A char-ac-ter in-di-cat-ing the link func-tion for the se-lec-
+tiv-ity model. \T1/zi4/m/n/10 "logit"\T1/ptm/m/n/10 (logistic)
+[14] [15] (./Rd2.ind [16]
+
+LaTeX Font Warning: Font shape `T1/zi4/m/it' undefined
+(Font)              using `T1/zi4/m/n' instead on input line 25.
+
+[17]) (./Rd2.aux)
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+ )
+(see the transcript file for additional information)pdfTeX warning (dest): name
+{Rfn.print} has been referenced but does not exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.function} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.VarCorr} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.mkReTrms} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.uniroot} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.tmbroot} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.profile.selMod} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{Rfn.set.seed} has been referenced but does not exis
+t, replaced by a fixed one
+
+{/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/inconsolata/i4-ts1.enc}{/us
+r/local/texlive/2019/texmf-dist/fonts/enc/dvips/base/8r.enc}{/usr/local/texlive
+/2019/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}</usr/local/texlive/20
+19/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></usr/local/t
+exlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/te
+xlive/2019/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/2
+019/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2019/texmf-
+dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/fonts
+/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/urw
+/times/utmri8a.pfb>
+Output written on Rd2.pdf (17 pages, 126578 bytes).
+Transcript written on Rd2.log.
+Saving output to ‘selfisher-manual.pdf’ ...
+Done
+You may want to clean up by 'rm -Rf /var/folders/8t/zsp25_b17td7j1y5d_nmfqt00000gq/T//Rtmp5KEHgj/Rd2pdf16aa3abde4ae'

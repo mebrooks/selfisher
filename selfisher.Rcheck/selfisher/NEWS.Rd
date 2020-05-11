@@ -3,26 +3,6 @@
 \name{NEWS}
 \title{selfisher News}
 \encoding{UTF-8}
-
-\section{CHANGES IN VERSION 0.3.0}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item Now possible to include sampling fractions in trouser trawl models, paired gear models, and models with non-logit links.
-    }
-  } % new features
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item Nonparametric bootstrapping should be working now.
-    }
-  } % bug fixes
-  \subsection{USER-VISIBLE CHANGES}{
-    \itemize{
-      \item
-    }
-  }
-} % 0.3.0
-
-
 \section{CHANGES IN VERSION 0.2.0}{
   \subsection{NEW FEATURES}{
     \itemize{
