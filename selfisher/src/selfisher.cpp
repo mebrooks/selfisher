@@ -466,6 +466,7 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(yobs);
   DATA_VECTOR(total);
   DATA_VECTOR(offset);
+  DATA_VECTOR(q);
 //  DATA_VECTOR(retp); //retention probability to predict corresponding L
 
   // Define covariance structure for the selectivity model
