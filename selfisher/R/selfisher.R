@@ -353,7 +353,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param link A character indicating the link function for the selectivity model.
 ##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "Richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
-##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
+##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? TRUE for trouser trawl experiments.
 ##' @param start starting values, expressed as a list with possible components
 ##' \code{betar}, \code{betap}, \code{betad} (fixed-effect parameters for
 ##' retention, psplit, Richards delta models); \code{br}, \code{bp}
@@ -362,7 +362,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' standard deviation/Cholesky scale, for retention and psplit models);
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
-##' @param haul Name of column representing different hauls. Needed for double bootstrap.
+##' @param haul Name of column representing different hauls. Needed for double bootstrap methods.
 ##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
@@ -377,7 +377,6 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @details
 ##' \itemize{
 ##' \item in all cases \code{selfisher} returns maximum likelihood estimates.
-##' \item You only need to specify \code{haul} in models that are going to be bootstraped with type="double".
 ##' \item Lp="basic" will return values for L50 and SR.
 ##' \item Lp="none" supresses calculation of L50 and SR to save time.
 ##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
