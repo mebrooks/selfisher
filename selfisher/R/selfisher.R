@@ -6,6 +6,7 @@
 ##' @param yobs observed y
 ##' @param respCol response column
 ##' @param total total
+##' @param qratio ratio sampling fraction ratio
 ##' @param link character
 ##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
 ##' @param Lp controls calculation of length (L) at retention prob (p)
@@ -14,11 +15,11 @@
 ##' @param whichPredict which observations in model frame represent predictions
 ##' @param start vector of initial values for the size selectivity model
 ##' @keywords internal
-##' @importFrom stats model.offset
+##' @importFrom stats model.offset model.extract
 mkTMBStruc <- function(rformula, pformula, dformula,
                        combForm,
                        mf, fr,
-                       yobs, total,
+                       yobs, total, qratio=NULL,
                        family, link_char, psplit, Lp,
                        pPredictCode="selection",
                        doPredict=0,
@@ -53,6 +54,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   nobs <- nrow(fr)
 
   if (is.null(total)) total <- rep(1,nobs)
+  if (is.null(qratio)) qratio <- rep(1,nobs)
 
   ## store info on location of response variable
   respCol <- attr(terms(fr), "response")
@@ -76,6 +78,7 @@ mkTMBStruc <- function(rformula, pformula, dformula,
     respCol,
     offset = rList$offset,
     total,
+    q = qratio,
     ## information about random effects structure
     termsr = rReStruc,
     termsp = pReStruc,
@@ -353,7 +356,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param link A character indicating the link function for the selectivity model.
 ##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "Richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
-##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.
+##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? TRUE for trouser trawl experiments.
 ##' @param start starting values, expressed as a list with possible components
 ##' \code{betar}, \code{betap}, \code{betad} (fixed-effect parameters for
 ##' retention, psplit, Richards delta models); \code{br}, \code{bp}
@@ -362,8 +365,9 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' standard deviation/Cholesky scale, for retention and psplit models);
 ##' @param data data frame
 ##' @param total The number of total fish caught in the test and control gear.
-##' @param haul Name of column representing different hauls. Needed for double bootstrap.
+##' @param haul Name of column representing different hauls. Needed for double bootstrap methods.
 ##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.
+##' @param qratio ratio of fractions sampled (test/control) or (codend/cover) or more in the general binomial definition (sucesses/failures). Use this to correct for sampling, OR an offset when possible, but not both. Always use qratio instead of an offset when using a link other than logit, or when psplit=TRUE.
 ##' @param Lp controls calculation of length (L) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
@@ -377,7 +381,6 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @details
 ##' \itemize{
 ##' \item in all cases \code{selfisher} returns maximum likelihood estimates.
-##' \item You only need to specify \code{haul} in models that are going to be bootstraped with type="double".
 ##' \item Lp="basic" will return values for L50 and SR.
 ##' \item Lp="none" supresses calculation of L50 and SR to save time.
 ##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
@@ -402,6 +405,7 @@ selfisher <- function (
     total=NULL,
     haul=NULL,
     pool=NULL,
+    qratio=NULL,
     offset=NULL,
     Lp="basic",
     se=TRUE,
@@ -448,7 +452,7 @@ selfisher <- function (
     if(link!="Richards") dformula[] <- ~0
 
     ## now work on evaluating model frame
-    m <- match(c("data", "subset", "total", "haul", "offset", "pool"),
+    m <- match(c("data", "subset", "total", "haul", "offset", "pool", "qratio"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
     mf$drop.unused.levels <- TRUE
@@ -483,11 +487,13 @@ selfisher <- function (
     ## store full, original formula
     ## attr(fr,"formula") <- combForm  ## unnecessary?
     nobs <- nrow(fr)
-    total <- as.vector(model.total(fr))
+    total <- as.vector(model.extract(fr, "total"))
+    qratio <- as.vector(model.extract(fr, "qratio"))
 
     if(is.null(total)) {
       stop("The total number of fish used to calculate the proportion (i.e the response variable) must be specified using 'total' argument.")
     }
+    if (is.null(qratio)) qratio <- rep(1,nobs)
 
     ## sanity checks (skipped!)
     ## wmsgNlev <- checkNlevels(reTrms$ flist, n=n, control, allow.n=TRUE)
@@ -502,11 +508,16 @@ selfisher <- function (
     ## (name *must* be 'y' to match guts of family()$initialize
     y <- fr[,respCol]
 
+    ## don't let user fit a model with offsets used in the wrong way
+    if(!is.null(fr$offset) & link!="logit") stop("Offsets cannot be used to account for sampling in models with non-logit links. Use argument qratio instead.")
+    if(!is.null(fr$offset) & call$psplit) stop("Offsets cannot be used to account for sampling in models with psplit. Use argument qratio instead.")
+
+    
     TMBStruc <-
         mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,
                    combForm = combForm,
                    mf=mf, fr=fr,
-                   yobs=y, total=total,
+                   yobs=y, total=total, qratio=qratio,
                    family=familyStr, link_char=link, psplit=psplit, start=start, Lp=Lp,
                    call=call, respCol=respCol)
 

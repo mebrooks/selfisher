@@ -534,8 +534,3 @@ parallel_default <- function(parallel=c("no","multicore","snow"),ncpus=1) {
     }
     return(list(parallel=parallel,do_parallel=do_parallel))
 }
-
-## renamed weights to total so need replacement for stats::model.weights
-model.total <- function (x) {
-  x$"(total)"
-}

@@ -13,6 +13,7 @@ mkTMBStruc(
   fr,
   yobs,
   total,
+  qratio = NULL,
   family,
   link_char,
   psplit,
@@ -45,6 +46,8 @@ The relative fishing power model uses a logit link.}
 \item{yobs}{observed y}
 
 \item{total}{total}
+
+\item{qratio}{ratio sampling fraction ratio}
 
 \item{psplit}{(logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.}
 

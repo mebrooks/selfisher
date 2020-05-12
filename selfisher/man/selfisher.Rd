@@ -15,6 +15,7 @@ selfisher(
   total = NULL,
   haul = NULL,
   pool = NULL,
+  qratio = NULL,
   offset = NULL,
   Lp = "basic",
   se = TRUE,
@@ -36,7 +37,7 @@ The relative fishing power model uses a logit link.}
 
 \item{dformula}{a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.}
 
-\item{psplit}{(logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? For covered codend and catch comparison, use psplit=FALSE.}
+\item{psplit}{(logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? TRUE for trouser trawl experiments.}
 
 \item{start}{starting values, expressed as a list with possible components
 \code{betar}, \code{betap}, \code{betad} (fixed-effect parameters for
@@ -50,9 +51,11 @@ standard deviation/Cholesky scale, for retention and psplit models);}
 
 \item{total}{The number of total fish caught in the test and control gear.}
 
-\item{haul}{Name of column representing different hauls. Needed for double bootstrap.}
+\item{haul}{Name of column representing different hauls. Needed for double bootstrap methods.}
 
 \item{pool}{(Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.}
+
+\item{qratio}{ratio of fractions sampled (test/control) or (codend/cover) or more in the general binomial definition (sucesses/failures). Use this to correct for sampling, OR an offset when possible, but not both. Always use qratio instead of an offset when using a link other than logit, or when psplit=TRUE.}
 
 \item{Lp}{controls calculation of length (L) at retention prob (p), see details}
 
@@ -71,7 +74,6 @@ Fit gear selectivity models with TMB
 \details{
 \itemize{
 \item in all cases \code{selfisher} returns maximum likelihood estimates.
-\item You only need to specify \code{haul} in models that are going to be bootstraped with type="double".
 \item Lp="basic" will return values for L50 and SR.
 \item Lp="none" supresses calculation of L50 and SR to save time.
 \item Lp="full" will return values of Lp for p=5 to 95 as well as SR

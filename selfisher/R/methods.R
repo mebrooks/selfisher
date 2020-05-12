@@ -452,13 +452,13 @@ residuals.selfisher <- function(object, type=c("response", "pearson", "deviance"
 #               r/sqrt(vv)
                y <- model.response(object$frame)
                yhat <- fitted(object)
-               n <- model.total(object$frame)
+               n <- model.extract(object$frame, "total")
                sqrt(n)*(y-yhat)/sqrt(yhat*(1-yhat))
            },
            deviance={
                y <- model.response(object$frame)
                yhat <- fitted(object)
-               n <- model.total(object$frame)
+               n <- model.extract(object$frame, "total")
                sign(y-yhat)*(binomial()$dev.resids(y, yhat, n))^.5
            }
        )

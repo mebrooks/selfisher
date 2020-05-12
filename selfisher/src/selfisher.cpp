@@ -466,6 +466,7 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(yobs);
   DATA_VECTOR(total);
   DATA_VECTOR(offset);
+  DATA_VECTOR(q);
 //  DATA_VECTOR(retp); //retention probability to predict corresponding L
 
   // Define covariance structure for the selectivity model
@@ -518,19 +519,14 @@ Type objective_function<Type>::operator() ()
   vector<Type> p(etap.size());
   if(psplit) { //trowser-trawl or alternate haul
     p = invlogit(etap);
-    //phi=p*r/(p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
-    logit_phi = log(p) + log(r) - log(Type(1.0)-p);
+    //phi=q*p*r/(q*p*r+Type(1)-p);// as in eqn 3 of Wileman et al. 1996, not like in glmmTMB
+    logit_phi = log(q) + log(p) + log(r) - log(Type(1.0)-p);
   } else { //covered codend or catch comparison
       for (int i = 0; i < r.size(); i++) {
-        logit_phi(i) = logit_inverse_linkfun(etar(i),  etad(i), link); //logit(r)
+        logit_phi(i) = log(q(i)) + logit_inverse_linkfun(etar(i),  etad(i), link); //log(q) + logit(r)
       }
-    //phi=r;
+    //phi=r*q/(r*q+1-r);
   }
-
-//  //Calculate binomial probability parameter (phi)
-//  vector<Type> phi(yobs.size());
-//  for (int i = 0; i < yobs.size(); i++)
-//    phi(i) = phifun(etar(i), etad(i), etap(i), link, psplit);
 
   // Observation likelihood
   for (int i=0; i < yobs.size(); i++){
