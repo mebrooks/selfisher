@@ -1,7 +1,7 @@
 ## Helper function for predict.
 ## Assert that we can use old model (data.tmb0) as basis for
 ## predictions using the new data (data.tmb1):
-assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE)
+assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE, type)
 {
   ## Check terms. Only 'blockReps' and 'blockSize' are allowed to
   ## change.  Note that we allow e.g. spatial covariance matrices to
@@ -46,7 +46,7 @@ assertIdenticalModels <- function(data.tmb1, data.tmb0, allow.new.levels=FALSE)
     }
   }
   checkModelMatrix(data.tmb1$Xr, data.tmb0$Xr)
-  checkModelMatrix(data.tmb1$Xp, data.tmb0$Xp)
+  if(type %in% c("response", "prob")) { checkModelMatrix(data.tmb1$Xp, data.tmb0$Xp) }
   NULL
 }
 
@@ -173,7 +173,7 @@ predict.selfisher <- function(object,newdata=NULL,
 
   ## Check that the model specification is unchanged:
   assertIdenticalModels(TMBStruc$data.tmb,
-                        object$obj$env$data, allow.new.levels)
+                        object$obj$env$data, allow.new.levels, type)
 
   ## Check that the neccessary predictor variables are finite (not NA nor NaN)
   if(se.fit) {
