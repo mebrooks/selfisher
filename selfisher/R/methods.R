@@ -811,7 +811,7 @@ refit.selfisher <- function(object, newdata, ...) {
   return(eval(cc))
 }
 
-##' read in data from a single haul
+##' read in data from a single haul of data in SELNET format
 ##' @param name part of the file name that stays the same
 ##' @param x possibly a number or other indicator of the unique haul
 ##' @param extension what type of file is it
@@ -854,4 +854,32 @@ read_in_haul=function(x, name="Haul", extension=".txt", raising=NULL, sampling=N
   lengths$haul=x
 
   return(lengths)
+}
+
+##' Get initial values for intercept (a) and coefficient on the length term (b)
+##' based on the link funciton, and your guesses for L50 and SR
+##' @param L50 guess for what L50 might be
+##' @param SR guess for what SR might be
+##' @param link character
+##' @param d delta exponent in Richards link model
+##' @export
+inits <- function(L50, SR, link="logit", d=1) {
+  if(link=="richards") link="Richards"
+
+  b = switch(link,
+    "logit"    = 2.197/SR,
+    "probit"   = 1.349/SR,
+    "cloglog"  = 1.573/SR,
+    "loglog"   = 1.573/SR,
+    "Richards" = (qlogis(0.75^d)-qlogis(0.25^d))/SR
+    )
+         
+  a = switch(link,
+    "logit"    = -L50*b,
+    "probit"   = -L50*b,
+    "cloglog"  = -0.3665-L50*b,
+    "loglog"   = 0.3665-L50*b,
+    "Richards" = qlogis(0.5^d)-L50*b
+    )
+  return(namedList(a, b))
 }
