@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{read_in_haul}
 \alias{read_in_haul}
-\title{read in data from a single haul}
+\title{read in data from a single haul of data in SELNET format}
 \usage{
 read_in_haul(
   x,
@@ -24,7 +24,7 @@ read_in_haul(
 \item{sampling}{name of sampled fraction if there is one e.g. "SAMPLING"}
 }
 \description{
-read in data from a single haul
+read in data from a single haul of data in SELNET format
 }
 \details{
 the name of the file where the data is stored is paste0(name, x, extension)
