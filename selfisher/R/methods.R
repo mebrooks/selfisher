@@ -862,6 +862,7 @@ read_in_haul=function(x, name="Haul", extension=".txt", raising=NULL, sampling=N
 ##' @param SR guess for what SR might be
 ##' @param link character
 ##' @param d delta exponent in Richards link model
+##' @return c(a,b) where a = intercept and b = slope of length 
 ##' @export
 inits <- function(L50, SR, link="logit", d=1) {
   if(link=="richards") link="Richards"
@@ -881,5 +882,5 @@ inits <- function(L50, SR, link="logit", d=1) {
     "loglog"   = 0.3665-L50*b,
     "Richards" = qlogis(0.5^d)-L50*b
     )
-  return(namedList(a, b))
+  return(c(a, b))
 }

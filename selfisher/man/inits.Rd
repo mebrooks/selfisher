@@ -16,6 +16,9 @@ inits(L50, SR, link = "logit", d = 1)
 
 \item{d}{delta exponent in Richards link model}
 }
+\value{
+c(a,b) where a = intercept and b = slope of length
+}
 \description{
 Get initial values for intercept (a) and coefficient on the length term (b)
 based on the link funciton, and your guesses for L50 and SR

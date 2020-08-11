@@ -7,6 +7,7 @@
 \section{CHANGES IN VERSION 0.3.0}{
   \subsection{NEW FEATURES}{
     \itemize{
+      \item New function `inits` to give initial values based on guesses for L50 and SR.
       \item Now possible to include sampling fractions in trouser trawl models, paired gear models, and models with non-logit links.
     }
   } % new features
