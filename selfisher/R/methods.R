@@ -863,6 +863,10 @@ read_in_haul=function(x, name="Haul", extension=".txt", raising=NULL, sampling=N
 ##' @param link character
 ##' @param d delta exponent in Richards link model
 ##' @return c(a,b) where a = intercept and b = slope of length 
+##' @examples
+##' dat = transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+##' m1 = selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat, 
+##'   link="cloglog", start=list(betar=inits(29.428195,  1.780573, link="cloglog")))
 ##' @export
 inits <- function(L50, SR, link="logit", d=1) {
   if(link=="richards") link="Richards"

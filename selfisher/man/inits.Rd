@@ -23,3 +23,8 @@ c(a,b) where a = intercept and b = slope of length
 Get initial values for intercept (a) and coefficient on the length term (b)
 based on the link funciton, and your guesses for L50 and SR
 }
+\examples{
+dat = transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
+m1 = selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat, 
+  link="cloglog", start=list(betar=inits(29.428195,  1.780573, link="cloglog")))
+}
