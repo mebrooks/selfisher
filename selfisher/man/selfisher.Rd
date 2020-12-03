@@ -57,7 +57,7 @@ standard deviation/Cholesky scale, for retention and psplit models);}
 
 \item{qratio}{ratio of fractions sampled (test/control) or (codend/cover) or more in the general binomial definition (sucesses/failures). Use this to correct for sampling, OR an offset when possible, but not both. Always use qratio instead of an offset when using a link other than logit, or when psplit=TRUE.}
 
-\item{Lp}{controls calculation of length (L) at retention prob (p), see details}
+\item{Lp}{controls calculation of length (l) at retention prob (p), see details}
 
 \item{se}{whether to return standard errors}
 
@@ -74,10 +74,8 @@ Fit gear selectivity models with TMB
 \details{
 \itemize{
 \item in all cases \code{selfisher} returns maximum likelihood estimates.
-\item Lp="basic" will return values for L50 and SR.
-\item Lp="none" supresses calculation of L50 and SR to save time.
-\item Lp="full" will return values of Lp for p=5 to 95 as well as SR
-\item Lp="100" will return values of Lp for p=1 to 100 as well as SR
+\item Lp="basic" will return values for l50 and SR.
+\item Lp="none" supresses calculation of l50 and SR to save time.
 \item Use \code{getCapabilities()} to see options for links and RE
 }
 }
