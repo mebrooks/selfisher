@@ -598,7 +598,7 @@ Type objective_function<Type>::operator() ()
   // method.
   if (doPredict) ADREPORT(mu_predict);
 
-  if((Lpflag!=0) && (Xr.cols()==2) && (Zr.cols()==0) && (Xd.cols()<2)) { //length only model (for now)
+  if((Lpflag!=0) && (Xr.cols()==2) && (Zr.cols()==0) && (Xd.cols()<2)) { //length only model
     vector<Type> retp(3); //retention probability
     vector<int> SRcalcs(2); //store indecies of .25 and .75 in retp
     switch(Lpflag) {
@@ -610,20 +610,6 @@ Type objective_function<Type>::operator() ()
       retp(2)=Type(0.75);
       SRcalcs(0)=0;
       SRcalcs(1)=2;
-      break;
-    case 2: //full
-      retp.resize(19);
-      retp << Type(0.05),Type(0.10),Type(0.15),Type(0.20),Type(0.25),Type(0.30),Type(0.35),Type(0.40),Type(0.45),Type(0.50),Type(0.55),Type(0.60),Type(0.65),Type(0.70),Type(0.75),Type(0.80),Type(0.85),Type(0.90),Type(0.95);
-      SRcalcs(0)=4;
-      SRcalcs(1)=14;
-      break;
-    case 3: //100
-      retp.resize(100);
-      for(int i=0; i<100;i++) {
-        retp(i) = Type(0.01+0.01*i);
-      }
-      SRcalcs(0)=24;//index of retp==0.25
-      SRcalcs(1)=74;//index of retp==0.75
       break;
     default:
       error("Invalid 'Lpflag'");
@@ -637,25 +623,6 @@ Type objective_function<Type>::operator() ()
     REPORT(retp);
     ADREPORT(SR);
 	}
-
-/* TODO This section calculates an L and SR for each observation.
-This will be useful for letting L50 and SR depend on covariates,
-but it requires postprocessing...
-			(1) match back to predictor columns of origianl data
-			(2) summarize somehow accounting for sources of uncertainty
-
-  if(Lpflag!=0) {
-    matrix<Type> L(etar.size(), retp.size());
-    for(int i=0; i<etar.size(); i++) {
-      for(int j=0; j<retp.size(); j++) {
-        L(i,j) = calcLprob(etar(i), Xr(i, Lindex), betar(Lindex), etad(i), retp(j), link);
-      }
-    }
-      SR = L.col(SRcalcs(1))-L.col(SRcalcs(0));
-      ADREPORT(L);
-      ADREPORT(SR);
-  }
-*/
 
   if(Xp.cols()==1 && Zp.cols()==0) {
 		Type p = invlogit(etap)(0);

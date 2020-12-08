@@ -61,11 +61,8 @@ mkTMBStruc <- function(rformula, pformula, dformula,
   names(respCol) <- names(fr)[respCol]
 
   #FLAGS
-  #FIXME: might be 'width' instead of 'length'
-        #does it ever need to output L50 for 2 or more types?
-#  Lindex = grep("length", colnames(rList$X), ignore.case=TRUE)-1
-  Lp <- match.arg(Lp, c("basic", "none", "full", "100"))
-  Lpflag = switch(Lp, "basic"=1, "none"=0, "full"=2, "100"=3)
+  Lp <- match.arg(Lp, c("basic", "none"))
+  Lpflag = switch(Lp, "basic"=1, "none"=0)
 
 
   data.tmb <- namedList(
@@ -368,7 +365,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @param haul Name of column representing different hauls. Needed for double bootstrap methods.
 ##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.
 ##' @param qratio ratio of fractions sampled (test/control) or (codend/cover) or more in the general binomial definition (sucesses/failures). Use this to correct for sampling, OR an offset when possible, but not both. Always use qratio instead of an offset when using a link other than logit, or when psplit=TRUE.
-##' @param Lp controls calculation of length (L) at retention prob (p), see details
+##' @param Lp controls calculation of length (l) at retention prob (p), see details
 ##' @param se whether to return standard errors
 ##' @param verbose logical indicating if some progress indication should be printed to the console.
 ##' @param debug whether to return the preprocessed data and parameter objects,
@@ -381,10 +378,8 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @details
 ##' \itemize{
 ##' \item in all cases \code{selfisher} returns maximum likelihood estimates.
-##' \item Lp="basic" will return values for L50 and SR.
-##' \item Lp="none" supresses calculation of L50 and SR to save time.
-##' \item Lp="full" will return values of Lp for p=5 to 95 as well as SR
-##' \item Lp="100" will return values of Lp for p=1 to 100 as well as SR
+##' \item Lp="basic" will return values for l50 and SR.
+##' \item Lp="none" supresses calculation of l50 and SR to save time.
 ##' \item Use \code{getCapabilities()} to see options for links and RE
 ##' }
 ##' @useDynLib selfisher
@@ -511,7 +506,7 @@ selfisher <- function (
     ## don't let user fit a model with offsets used in the wrong way
     if(!is.null(fr$offset) & link!="logit") stop("Offsets cannot be used to account for sampling in models with non-logit links. Use argument qratio instead.")
     if(!is.null(fr$offset) & call$psplit) stop("Offsets cannot be used to account for sampling in models with psplit. Use argument qratio instead.")
-
+    if(!is.null(fr$offset) & !is.null(fr$qratio)) warning("You are using both an offset and qratio. This is very unusual. Double check.")
     
     TMBStruc <-
         mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,

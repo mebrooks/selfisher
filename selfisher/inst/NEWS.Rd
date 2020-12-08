@@ -4,10 +4,28 @@
 \title{selfisher News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 1.0.0}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Added data sets plus examples to go with upcoming manuscript
+      }
+  } % new features
+%  \subsection{BUG FIXES}{
+%   \itemize{
+%      \item 
+%    }
+%  } % bug fixes
+%  \subsection{USER-VISIBLE CHANGES}{
+%    \itemize{
+%      \item
+%    }
+%  }
+} % 1.0.0
+
 \section{CHANGES IN VERSION 0.3.0}{
   \subsection{NEW FEATURES}{
     \itemize{
-      \item New function `inits` to give initial values based on guesses for L50 and SR.
+      \item New function `inits` to give initial values based on guesses for l50 and SR.
       \item Now possible to include sampling fractions in trouser trawl models, paired gear models, and models with non-logit links.
     }
   } % new features
