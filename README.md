@@ -15,3 +15,7 @@ install.packages('TMB', type = 'source')
 ```
 
 If you get a warning saying `In checkMatrixPackageVersion() : Package version inconsistency detected.`, then you may need to first install TMB from source using the command `install.packages('TMB', type = 'source')`, then reinstall selfisher. Installing the source version will ensure that you get the very latest version of the package; since the package is in rapid development, that's a good idea. 
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/mebrooks/selfisher/workflows/R-CMD-check/badge.svg)](https://github.com/mebrooks/selfisher/actions)
+<!-- badges: end -->
