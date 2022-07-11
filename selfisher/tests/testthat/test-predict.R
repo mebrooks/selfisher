@@ -32,9 +32,35 @@ test_that("Prediction with fixed psplit works", {
 	expect_equal(unique(predict(m0, type="prob")), 0.5)
 })
 
-test_that("Predict with newdata", {
+test_that("Predict with simple newdata", {
 	expect_equal(predict(m0, newdata=nd)[c(1, 15, 30)],
 		c(0.0000, 0.4991, 0.5000), tol=1e-3)
 	expect_equal(predict(m1, newdata=nd)[c(1, 15, 30)],
 		c(0.0001, 0.5656, 0.5728), tol=1e-3)
+})
+
+test_that("Predict with splines", {
+  library(splines)
+  library(selfisher)
+  library(ggplot2)
+  library(plyr)
+  data(comphaddock)
+
+  comphaddock = transform(comphaddock,
+                          total = TEST1 + TEST2,
+                          prop = TEST1 / (TEST1+TEST2),
+                          ratio = TEST1 / TEST2
+  )
+  comphaddock = subset(comphaddock, !is.na(prop))
+  m5 = selfisher(prop~bs(LENGTH, df = 4), total = total, comphaddock, haul = HAUL)
+
+  newdata1 = data.frame(LENGTH=(0:100)+0.5, total=1, HAUL=NA)
+  newdata2 = data.frame(LENGTH=unique(comphaddock$LENGTH), total=1, HAUL=NA)
+  newdata2=newdata2[order(newdata2$LENGTH),]
+
+  expect_warning(newdata1$prop <- predict(m5, newdata = newdata1, type = "response"))
+  newdata2$prop = predict(m5, newdata = newdata2, type = "response")
+  y1 = subset(newdata1, LENGTH%in%newdata2$LENGTH)$prop
+
+  expect_equal(y1, newdata2$prop)
 })
