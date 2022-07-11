@@ -3,6 +3,24 @@
 \name{NEWS}
 \title{selfisher News}
 \encoding{UTF-8}
+\section{CHANGES IN VERSION 1.1.0}{
+%  \subsection{NEW FEATURES}{
+%    \itemize{
+%      \item
+%      }
+%  } % new features
+  \subsection{BUG FIXES}{
+   \itemize{
+       \item \code{predict} was not handling data-dependent predictors (e.g. \code{poly}, \code{spline}, \code{scale}) correctly
+    }
+  } % bug fixes
+%  \subsection{USER-VISIBLE CHANGES}{
+%    \itemize{
+%      \item
+%    }
+%  }
+} % 1.1.0
+
 
 \section{CHANGES IN VERSION 1.0.0}{
   \subsection{NEW FEATURES}{
@@ -12,7 +30,7 @@
   } % new features
 %  \subsection{BUG FIXES}{
 %   \itemize{
-%      \item 
+%      \item
 %    }
 %  } % bug fixes
 %  \subsection{USER-VISIBLE CHANGES}{
