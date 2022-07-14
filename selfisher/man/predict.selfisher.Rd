@@ -48,10 +48,12 @@ Predicting with type="response" returns values comparable to the
 response variable (the left-hand side of the model's rformula);
 that is  pr/(pr+1-p) in a model with psplit=TRUE
 or r in a model with psplit=FALSE.
-This function could work with random effects, but is untested.
+\itemize{
+\item Prediction of new random effect levels is possible as long as the model specification (fixed effects and parameters) is kept constant.
+However, to ensure intentional usage, a warning is triggered if \code{allow.new.levels=FALSE} (the default).
+\item Prediction using "data-dependent bases" (variables whose scaling or transformation depends on the original data, e.g. \code{\link{poly}}, \code{\link[splines]{ns}}, or \code{\link{poly}}) should work properly; however, users are advised to check results extra-carefully when using such variables. Models with different versions of the same data-dependent basis type in different components (e.g. \code{formula= y ~ poly(x,3), dispformula= ~poly(x,2)}) will probably \emph{not} produce correct predictions.
 }
-\examples{
-data(haddock)
+##' @examples data(haddock)
 dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
 m1 <- selfisher(prop~Lengths, p=~1, psplit=TRUE, total=tot, dat)
 nd <- data.frame(Lengths=20:50, tot=100)
