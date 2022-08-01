@@ -46,12 +46,12 @@ test_that("Predict with splines", {
   library(plyr)
   data(comphaddock)
 
-  comphaddock = transform(comphaddock,
+  comphaddock <<- transform(comphaddock,
                           total = TEST1 + TEST2,
                           prop = TEST1 / (TEST1+TEST2),
                           ratio = TEST1 / TEST2
   )
-  comphaddock = subset(comphaddock, !is.na(prop))
+  comphaddock <<- subset(comphaddock, !is.na(prop))
   m5 = selfisher(prop~bs(LENGTH, df = 4), total = total, comphaddock, haul = HAUL)
 
   newdata1 = data.frame(LENGTH=(0:100)+0.5, total=1, HAUL=NA)
@@ -63,4 +63,10 @@ test_that("Predict with splines", {
   y1 = subset(newdata1, LENGTH%in%newdata2$LENGTH)$prop
 
   expect_equal(y1, newdata2$prop)
+})
+
+test_that("predict works for I(x^2)", {
+  mpoly=selfisher(prop~poly(LENGTH, 3), total=total, comphaddock)
+  expect_warning(mI <- selfisher(prop~LENGTH + I(LENGTH^2)+ I(LENGTH^3), total=total, comphaddock))
+  expect_equal(predict(mpoly), predict(mI), tolerance = 1e-6)
 })
