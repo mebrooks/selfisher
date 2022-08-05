@@ -345,15 +345,17 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 
 ##' Fit gear selectivity models with TMB
 ##' @param rformula combined fixed and random effects formula for the selectivity model, following lme4
-##'     syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.
+##'     syntax. The left-hand side of the formula should be the proportion of fish retained in the test gear.
 ##' @param pformula a \emph{one-sided} (i.e., no response variable) formula for
-##'     the ralaive fishing power of the test versus the control gear combining fixed and random effects:
+##'     the ralative fishing power of the test versus the control gear combining fixed and random effects:
 ##' \code{~0} can be used to specify equal fishing power (p=0.5).
+##' \code{~1} estimates one overall relative fishing power.
+##' \code{~(1|haul)} allows relative fishing power to vary randomly by \code{haul}.
 ##' The relative fishing power model uses a logit link.
 ##' @param link A character indicating the link function for the selectivity model.
 ##' \code{"logit"}(logistic) is the default, but other options are "probit" (i.e. normal probability ogiv), "cloglog" (i.e. negative extreme value), "loglog" (i.e. extreme value/Gompert), or "Richards"
 ##' @param dformula a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.
-##' @param psplit (logical) Does the model contain psplit as in eqn 3 of Wileman et al. 1996? TRUE for trouser trawl experiments.
+##' @param psplit (logical) Use TRUE for paired gear experiments where one gear is non-selective.
 ##' @param start starting values, expressed as a list with possible components
 ##' \code{betar}, \code{betap}, \code{betad} (fixed-effect parameters for
 ##' retention, psplit, Richards delta models); \code{br}, \code{bp}
@@ -361,14 +363,15 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' \code{thetar}, \code{thetap} (random-effect parameters, on the
 ##' standard deviation/Cholesky scale, for retention and psplit models);
 ##' @param data data frame
-##' @param total The number of total fish caught in the test and control gear.
+##' @param total Name of column representing the number of total fish caught and counted in one length class within haul, i.e. the binomial denominator (e.g. codend + cover, test + control, or test1 + test2).
 ##' @param haul Name of column representing different hauls. Needed for double bootstrap methods.
-##' @param pool (Optional) name of column representing different pools of hauls. Used in double bootstrap to produce same number of hauls by pool.
-##' @param qratio ratio of fractions sampled (test/control) or (codend/cover) or more in the general binomial definition (sucesses/failures). Use this to correct for sampling, OR an offset when possible, but not both. Always use qratio instead of an offset when using a link other than logit, or when psplit=TRUE.
+##' @param pool (Optional) name of column representing different pools of hauls. Used in hierarchical bootstrapping to produce same number of hauls by pool.
+##' @param qratio Name of column representing the ratio of sampling fractions, e.g. (sampled test/sampled control) or (sampled codend/sampled cover) or in the general binomial definition (sampled successes/sampled failures). Use this to correct for sampling.
+##' @param offset see details below
 ##' @param Lp controls calculation of length (l) at retention prob (p), see details
-##' @param se whether to return standard errors
-##' @param verbose logical indicating if some progress indication should be printed to the console.
-##' @param debug whether to return the preprocessed data and parameter objects,
+##' @param se (logical) whether to return standard errors
+##' @param verbose (logical) progress indication should be printed to the console.
+##' @param debug (logical) whether to return the preprocessed data and parameter objects,
 ##'     without fitting the model
 ##' @param optControl control parameters passed to \code{nlminb}
 ##' @importFrom stats binomial nlminb as.formula terms model.weights
@@ -377,10 +380,11 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' @importFrom TMB MakeADFun sdreport
 ##' @details
 ##' \itemize{
-##' \item in all cases \code{selfisher} returns maximum likelihood estimates.
+##' \item In general, \code{qratio} is more applicable than traditional GLM offsets. Do not use an offset together with \code{qratio}. Always use \code{qratio} instead of an offset when using a link other than logit, or when \code{psplit=TRUE}.
+##' \item In all cases \code{selfisher} returns maximum likelihood estimates.
 ##' \item Lp="basic" will return values for l50 and SR.
 ##' \item Lp="none" supresses calculation of l50 and SR to save time.
-##' \item Use \code{getCapabilities()} to see options for links and RE
+##' \item Use \code{getCapabilities()} to see options for retention model links and random effects covariance structures.
 ##' }
 ##' @useDynLib selfisher
 ##' @importFrom stats update
@@ -389,6 +393,8 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##' dat <- transform(haddock, tot=nfine+nwide, prop=nwide/(nfine+nwide))
 ##' m0 <- selfisher(prop~Lengths, pformula=~0, psplit=TRUE, total=tot, dat)
 ##' m1 <- selfisher(prop~Lengths, pformula=~1, psplit=TRUE, total=tot, dat)
+##' @references
+##' More examples are available in Brooks ME, Melli V, Savina E, Santos J, Millar R, O'Neill FG, Veiga-Malta T, Krag LA, Feekings JP. 2022. Introducing selfisher: open source software for statistical analyses of fishing gear selectivity. Canadian Journal of Fisheries and Aquatic Sciences. https://doi.org/10.1139/cjfas-2021-0099
 selfisher <- function (
     rformula,
     data = NULL,
@@ -507,7 +513,7 @@ selfisher <- function (
     if(!is.null(fr$offset) & link!="logit") stop("Offsets cannot be used to account for sampling in models with non-logit links. Use argument qratio instead.")
     if(!is.null(fr$offset) & call$psplit) stop("Offsets cannot be used to account for sampling in models with psplit. Use argument qratio instead.")
     if(!is.null(fr$offset) & !is.null(fr$qratio)) warning("You are using both an offset and qratio. This is very unusual. Double check.")
-    
+
     TMBStruc <-
         mkTMBStruc(rformula=rformula, pformula=pformula, dformula=dformula,
                    combForm = combForm,
