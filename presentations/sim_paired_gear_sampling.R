@@ -1,0 +1,126 @@
+## ----setup, include=FALSE------------------------------------------------------------------
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
+
+
+## ----pkgs----------------------------------------------------------------------------------
+library(boot) #for inv.logit
+library(ggplot2); theme_set(theme_bw())
+library(plyr)
+library(selfisher)
+set.seed(11)
+
+
+## ----pars----------------------------------------------------------------------------------
+length=1:100 # length classes
+pars1=c(-6, .1) #selection curve parameters for gear 1
+nhaul=10 #number of hauls with each type of gear
+q1=runif(nhaul, 0.6, 0.8) #sampling fractions for gear 1
+q2=runif(nhaul, 0.2, 0.4) #sampling fractions for gear 2
+psplit=0.6
+nfish=c(rep(0, 20), 
+				rep(5, 20), 
+				rep(10, 20), 
+				rep(20, 20), 
+				rep(10, 10),
+				rep(1, 10)) # avg number of fish encountered in each length class in each haul
+
+
+## ----dat-----------------------------------------------------------------------------------
+bdat=expand.grid(length = length, haul=1:nhaul) #stacked length classes and hauls
+bdat$nfish=nfish
+
+bdat=transform(bdat, 
+			sampling_test =q1[haul], # sampling fraction varies by haul and gear
+			sampling_control =q2[haul], # sampling fraction varies by haul and gear
+			psplit=psplit, #relative fishing power is constant by haul
+			r1=inv.logit(pars1[1]+ pars1[2]* length), #retention of test gear
+			r2=1, #retention of control gear
+			simtotal=rpois(nrow(bdat), nfish) #total number caught but not observed
+			)
+
+
+## ----sim_retention-------------------------------------------------------------------------
+dat = transform(bdat, length= length, haul=haul,
+	test=rbinom(nrow(bdat), size= simtotal, prob=r1*q1*psplit),
+	control=rbinom(nrow(bdat), size= simtotal, prob=r2*q2*(1-psplit)))
+
+
+## ----rescale-------------------------------------------------------------------------------
+
+dat=transform(dat, 
+      qratio=sampling_test/sampling_control,
+      prop=test/(test+control),
+      total=test+control,
+      r1=r1,
+      true_resp=r1*psplit/ (1-psplit + psplit*r1)
+)
+
+dat=subset(dat, !is.na(prop))
+
+
+## ----sumdat--------------------------------------------------------------------------------
+sumdat=ddply(dat, ~length + r1 , summarize, 
+      prop=sum(test)/sum(total), 
+      total=sum(total),
+      raised_prop=sum(test/sampling_test)/
+                        (sum(test/sampling_test)+sum(control/sampling_control)),
+      raised_total=sum(test/sampling_test)+sum(control/sampling_control),
+      true_resp=true_resp[1]
+      )
+
+p1=ggplot(sumdat, aes(x=length))+
+    geom_line(data=sumdat, aes(length, true_resp), colour="red", alpha=.5, lwd=2)+
+	  geom_point(data=sumdat, aes(size=total, y=raised_prop), alpha=.5)+
+	ylab("proportion of fish in test gear")
+p1
+
+
+## ----model---------------------------------------------------------------------------------
+m1=selfisher(prop~ length, pformula=~1, psplit=TRUE, total=total, dat, haul=haul, qratio=qratio)
+
+summary(m1)
+
+fixef(m1)$r
+pars1
+
+psplit
+boot::inv.logit(fixef(m1)$p) #very close
+
+
+## ----preds---------------------------------------------------------------------------------
+newdata=data.frame(length=unique(dat$length))
+newdata=transform(newdata,
+    total=1,
+    haul=NA,
+    qratio=1
+)
+
+newdata$est_resp=predict(m1, newdata=newdata, type="response")
+
+
+## ----boot, message=FALSE, warning=FALSE----------------------------------------------------
+bs=bootSel(m1, nsim=1000, parallel = "multicore", ncpus = 4,
+        FUN=function(mod){predict(mod, newdata=newdata, type="response")})
+
+
+
+## ----bootwin, eval=FALSE-------------------------------------------------------------------
+## library(snow)
+## ncpus = 4
+## cl = makeCluster(rep("localhost", ncpus)) clusterExport(cl, "newdata")
+## bs = bootSel(m1, nsim=1000, parallel = "snow", cl=cl,
+##     FUN=function(mod){predict(mod, newdata=newdata, type="response")})
+## stopCluster(cl)
+
+
+## ----plotboot------------------------------------------------------------------------------
+#apply quantile function to bootstraps and match them with the newdata used for predictions 
+quants=apply(bs$t, 2, quantile, c(0.025, 0.5, 0.975)) 
+
+newdata[,c("lo", "mid", "hi")]=t(quants)
+
+p1+
+	geom_ribbon(data=newdata, aes(ymin=lo, ymax=hi), alpha=0.2)+
+	geom_line(data=newdata, aes(y=est_resp))
+
+
