@@ -28,11 +28,13 @@ mkTMBStruc(
 }
 \arguments{
 \item{rformula}{combined fixed and random effects formula for the selectivity model, following lme4
-syntax. The left-hand side of the formula should be the proportion of fish entering the test gear.}
+syntax. The left-hand side of the formula should be the proportion of fish retained in the test gear.}
 
 \item{pformula}{a \emph{one-sided} (i.e., no response variable) formula for
-    the ralaive fishing power of the test versus the control gear combining fixed and random effects:
+    the ralative fishing power of the test versus the control gear combining fixed and random effects:
 \code{~0} can be used to specify equal fishing power (p=0.5).
+\code{~1} estimates one overall relative fishing power.
+\code{~(1|haul)} allows relative fishing power to vary randomly by \code{haul}.
 The relative fishing power model uses a logit link.}
 
 \item{dformula}{a formula for the delta parameter in Richards selection curve. Ignored unless \code{link="richards"}.}

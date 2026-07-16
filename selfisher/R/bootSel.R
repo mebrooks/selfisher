@@ -242,7 +242,7 @@ bootSel <- function(x, FUN = L50SR, nsim = 2, seed = NULL,
     s
 } ## {bootSel}
 
-##' @S3method as.data.frame boot
+##' @export
 as.data.frame.boot <- function(x,...) {
   as.data.frame(x$t)
 }

@@ -235,7 +235,7 @@ fbx <- function(term,debug=FALSE,specials=character(0),
 ##' splitForm(~(((x+y))))               ## lots of parentheses
 ##'
 ##' @author Steve Walker
-##' @importFrom lme4 nobars
+##' @importFrom reformulas nobars
 ##' @export
 splitForm <- function(formula,
                       defaultTerm="us",

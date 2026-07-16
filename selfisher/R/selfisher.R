@@ -155,7 +155,7 @@ interceptinit <- function(link) {
 ##'
 ##' @importFrom stats model.matrix
 ##' @importFrom methods new
-##' @importFrom lme4 findbars nobars
+##' @importFrom reformulas findbars nobars
 getXReTrms <- function(formula, mf, fr, ranOK=TRUE, type="") {
   ## fixed-effects model matrix X -
   ## remove random effect parts from formula:
@@ -375,7 +375,8 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##'     without fitting the model
 ##' @param optControl control parameters passed to \code{nlminb}
 ##' @importFrom stats binomial nlminb as.formula terms model.weights
-##' @importFrom lme4 subbars findbars mkReTrms nobars
+##' @importFrom lme4 mkReTrms
+##' @importFrom reformulas subbars findbars nobars
 ##' @importFrom Matrix t
 ##' @importFrom TMB MakeADFun sdreport
 ##' @details
