@@ -150,7 +150,7 @@ interceptinit <- function(link) {
 ##' @return a list composed of
 ##' \item{X}{design matrix for fixed effects}
 ##' \item{Z}{design matrix for random effects}
-##' \item{reTrms}{output from \code{\link{mkReTrms}} from \pkg{lme4}}
+##' \item{reTrms}{output from \code{\link{mkReTrms}} from \pkg{reformulas}}
 ##' \item{offset}{offset vector, or vector of zeros if offset not specified}
 ##'
 ##' @importFrom stats model.matrix
@@ -375,8 +375,7 @@ stripReTrms <- function(xrt, whichReTrms = c("cnms","flist"), which="terms") {
 ##'     without fitting the model
 ##' @param optControl control parameters passed to \code{nlminb}
 ##' @importFrom stats binomial nlminb as.formula terms model.weights
-##' @importFrom lme4 mkReTrms
-##' @importFrom reformulas subbars findbars nobars
+##' @importFrom reformulas mkReTrms subbars findbars nobars
 ##' @importFrom Matrix t
 ##' @importFrom TMB MakeADFun sdreport
 ##' @details

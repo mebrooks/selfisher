@@ -21,7 +21,7 @@ getXReTrms(formula, mf, fr, ranOK = TRUE, type = "")
 a list composed of
 \item{X}{design matrix for fixed effects}
 \item{Z}{design matrix for random effects}
-\item{reTrms}{output from \code{\link{mkReTrms}} from \pkg{lme4}}
+\item{reTrms}{output from \code{\link{mkReTrms}} from \pkg{reformulas}}
 \item{offset}{offset vector, or vector of zeros if offset not specified}
 }
 \description{
