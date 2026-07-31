@@ -687,7 +687,7 @@ summary.selfisher <- function(object,...)
 
 ## copied from lme4:::print.summary.merMod (makes use of
 ##' @importFrom lme4 .prt.family .prt.resids .prt.VC .prt.grps
-##' @importFrom stats printCoefmat format.pval
+##' @importFrom stats printCoefmat
 ##' @method print summary.selfisher
 ##' @export
 print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
