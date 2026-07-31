@@ -3,7 +3,9 @@ Title: Selectivity of Fisheries Gear, Modeled using Template Model Builder
 Version: 1.1.0
 Date: 2022-7-11
 Authors@R: c(person("Mollie","Brooks",role=c("aut","cre"),
-                   email="mollieebrooks@gmail.com"))
+                   email="mollieebrooks@gmail.com"),
+             person("Julie","Groenlund",role="ctb",
+                    comment=c(ORCID="0009-0005-1987-0481")))
 Description: Fit selectivity models in R. The models are fit using maximum
     likelihood estimation via 'TMB' (Template Model Builder). Random effects are
     assumed to be Gaussian on the scale of the linear predictor and are integrated
