@@ -4,11 +4,12 @@
 \title{selfisher News}
 \encoding{UTF-8}
 \section{CHANGES IN VERSION 1.1.0}{
-%  \subsection{NEW FEATURES}{
-%    \itemize{
-%      \item
-%      }
-%  } % new features
+\subsection{NEW FEATURES}{
+    \itemize{
+      \item \code{summary} now reports a goodness-of-fit p-value, computed from
+      the Pearson chi-squared statistic.
+      }
+  } % new features
   \subsection{BUG FIXES}{
    \itemize{
        \item \code{predict} was not handling data-dependent predictors (e.g. \code{poly}, \code{spline}, \code{scale}) correctly

@@ -583,14 +583,18 @@ selfisher <- function (
               class = "selfisher")
 }
 
-##' @importFrom stats AIC BIC
+##' @importFrom stats AIC BIC pchisq
 llikAIC <- function(object) {
     llik <- logLik(object)
+    dev <- sum(na.omit((residuals(object,type="deviance"))^2))
+    pearson <- sum((residuals(object,type="pearson"))^2)
+    dfres <- df.residual(object)
     AICstats <-
         c(AIC = AIC(llik), BIC = BIC(llik), logLik = c(llik),
-          deviance = sum(na.omit((residuals(object,type="deviance"))^2)),
-          Pearson.ChiSq=sum((residuals(object,type="pearson"))^2),
-          df.resid = df.residual(object))
+          deviance = dev,
+          Pearson.ChiSq = pearson,
+          df.resid = dfres,
+          p.value = pchisq(pearson, df = dfres, lower.tail = FALSE))
     list(logLik = llik, AICtab = AICstats)
 }
 
@@ -693,7 +697,8 @@ print.summary.selfisher <- function(x, digits = max(3, getOption("digits") - 3),
 {
     .prt.family(x)
     .prt.call.selfisher(x$call); cat("\n")
-    .prt.aictab(x$AICtab); cat("\n")
+    .prt.aictab(x$AICtab[setdiff(names(x$AICtab), "p.value")])
+    cat("p-value:", format.pval(x$AICtab[["p.value"]], digits = 3), "\n\n")
     if (show.resids)
         .prt.resids(x$residuals, digits = digits)
 
